@@ -1,0 +1,75 @@
+[tool.poetry]
+name = "configure-aws-parallelcluster"
+
+# See: https://github.com/python-poetry/poetry/pull/2366#issuecomment-652418094
+# For info on poetry versioning for Python < 3.8
+version = "0.1.0"
+
+description = "Scripts to configure AWS ParallelCluster."
+authors = ["Robin Kennedy-Reid <robin.kennedy-reid@stfc.ac.uk>"]
+packages = [
+    { include = "configure_aws_parallelcluster", from = "src" },
+]
+
+[tool.poetry.scripts]
+configure-aws-parallelcluster = "configure_aws_parallelcluster.__main__:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+pylint = "^2.13.9"
+mypy = "^0.950"
+black = "^22.3.0"
+flake8 = "^4.0.1"
+isort = "^5.10.1"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
+[tool.mypy]
+files = ["src", "tests"]
+
+[tool.black]
+# extend_exclude = '''
+# ^/exclude_dir/
+# '''
+
+# See: https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html
+# For info on compatibility of black with isort, pylint, flake8
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+# extend_skip_glob = ["exclude_dir/**"]
+
+[tool.pylint.'MESSAGES CONTROL']
+disable=[
+  "all",
+]
+
+enable=[
+  "E",
+  "F",
+]
+
+[tool.pylint.FORMAT]
+max-line-length = "88"
+output-format="colorized"
+score="no"
+
+[tool.pylint.REPORTS]
+output-format="colorized"
+score="no"
+
+# See links below on exluding directories from pyright (and thus pylance)
+# https://github.com/microsoft/pylance-release/issues/642#issuecomment-732175189
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md#sample-config-file
+[tool.pyright]
+include = ["src"]
+# exclude = ["exclude_dir/"]

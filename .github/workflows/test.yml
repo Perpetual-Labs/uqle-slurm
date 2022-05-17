@@ -1,0 +1,50 @@
+name: CI - Test
+
+on:
+  push:
+
+jobs:
+  lint:
+    name: "Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        id: setup-python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@2bf112a0f6979928eb6b011f39700db589c5961e
+
+      - name: Get poetry cache dir
+        id: poetry-cache
+        run: echo "::set-output name=dir::$(poetry config cache-dir)"
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v3
+        id: cached-poetry-dependencies
+        with:
+
+          path: ${{ steps.poetry-cache.outputs.dir }}
+          key: poetry-cache-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+
+      - name: Install Dependencies using Poetry
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install root project
+        run: poetry install --no-interaction
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Test
+        run: poetry run task test

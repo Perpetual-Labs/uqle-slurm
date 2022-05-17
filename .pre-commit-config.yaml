@@ -1,0 +1,9 @@
+fail_fast: true
+repos:
+  - repo: local
+    hooks:
+      - id: check-linting-and-formatting
+        name: check-lint-and-formatting
+        entry: task lint
+        language: system
+        pass_filenames: false
