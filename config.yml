@@ -1,0 +1,21 @@
+Region: eu-west-2
+Image:
+  Os: centos7
+HeadNode:
+  InstanceType: t2.micro
+  Networking:
+    SubnetId: subnet-0fedb5d75e15f93da
+  Ssh:
+    KeyName: pcluster-robin-dev-key-pair
+Scheduling:
+  Scheduler: slurm
+  SlurmQueues:
+    - Name: queue1
+      ComputeResources:
+        - Name: t2micro
+          InstanceType: t2.micro
+          MinCount: 1
+          MaxCount: 4
+      Networking:
+        SubnetIds:
+          - subnet-077834e20668fdad3
