@@ -228,3 +228,6 @@ $RECYCLE.BIN/
 
 # cookiecutter template initiation script rlkennedyreid/python-project-template
 initiate-project.sh
+config-parameters.json
+temp-config.yml
+config.yml

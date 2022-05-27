@@ -1,0 +1,9 @@
+{
+  "AWS_REGION": "eu-west-2",
+  "SSH_KEY_PAIR": "slurm-head-node-key-pair",
+  "PUBLIC_SUBNET": "subnet-lvvrs3q3zwtrgjifu",
+  "PRIVATE_SUBNET": "subnet-u7xxlqxfm2nw14qcm",
+  "SLURM_VERSION": "21.08.8",
+  "HEAD_NODE_CONFIGURED_SCRIPT": "https://github.com/rlkennedyreid/parallel-cluster-head-node-script/raw/main/script.sh",
+  "SLURM_JWT_KEY": "BMyiXNxkFBGEtFtcWZxBaLMbDfioubWe"
+}
