@@ -1,9 +1,12 @@
 {
   "AWS_REGION": "eu-west-2",
   "SSH_KEY_PAIR": "slurm-head-node-key-pair",
+  "CUSTOM_BOOT_ACTION_SCRIPT": "https://github.com/rlkennedyreid/parallel-cluster-head-node-script/raw/main/script.sh",
   "PUBLIC_SUBNET": "subnet-lvvrs3q3zwtrgjifu",
   "PRIVATE_SUBNET": "subnet-u7xxlqxfm2nw14qcm",
   "SLURM_VERSION": "21.08.8",
-  "HEAD_NODE_CONFIGURED_SCRIPT": "https://github.com/rlkennedyreid/parallel-cluster-head-node-script/raw/main/script.sh",
-  "SLURM_JWT_KEY": "BMyiXNxkFBGEtFtcWZxBaLMbDfioubWe"
+  "SLURM_JWT_KEY": "BMyiXNxkFBGEtFtcWZxBaLMbDfioubWe",
+  "UQLE_CLI_TAG": "0.3.1-dev",
+  "MACHINE_USER_TOKEN": "ghp_4h4J46XZVTkT6Va1b4Sa4aoAi340JJ6idhE4",
+  "UQLE_API_HOST": "http://<ip-address>:2323"
 }

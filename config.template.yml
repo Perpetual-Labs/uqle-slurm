@@ -2,29 +2,42 @@ Region: {{ AWS_REGION }}
 Image:
   Os: alinux2
 HeadNode:
-  InstanceType: t2.micro
+  InstanceType: t2.xlarge
   Networking:
     SubnetId: {{ PUBLIC_SUBNET }}
+    ElasticIp: true
   Ssh:
     KeyName: {{ SSH_KEY_PAIR }}
   CustomActions:
     OnNodeConfigured:
-      Script: {{ HEAD_NODE_CONFIGURED_SCRIPT }}
+      Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
       Args:
         - "{{ SLURM_VERSION }}"
         - "{{ SLURM_JWT_KEY }}"
+        - "{{ UQLE_CLI_TAG }}"
+        - "{{ MACHINE_USER_TOKEN }}"
+        - "{{ UQLE_API_HOST }}"
 Scheduling:
   Scheduler: slurm
   SlurmQueues:
     - Name: queue1
       ComputeResources:
-        - Name: t2micro
-          InstanceType: t2.micro
-          MinCount: 0
+        - Name: t2large
+          InstanceType: t2.large
+          MinCount: 1
           MaxCount: 2
       Networking:
         SubnetIds:
           - {{ PRIVATE_SUBNET }}
+      CustomActions:
+        OnNodeConfigured:
+          Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
+          Args:
+            - "{{ SLURM_VERSION }}"
+            - "{{ SLURM_JWT_KEY }}"
+            - "{{ UQLE_CLI_TAG }}"
+            - "{{ MACHINE_USER_TOKEN }}"
+            - "{{ UQLE_API_HOST }}"
 SharedStorage:
   - MountDir: /shared
     Name: shared
