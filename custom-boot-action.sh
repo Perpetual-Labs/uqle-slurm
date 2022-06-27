@@ -142,7 +142,7 @@ function rebuild_slurm() {
 
     deactivate
 
-    popd && rm -rf slurm-${slurm_version} .venv
+    popd && rm -rf "slurm-${slurm_version}" .venv
 }
 
 function write_jwt_key_file() {
