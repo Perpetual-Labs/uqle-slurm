@@ -21,8 +21,8 @@ chevron = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
-pylint = "^2.13.9"
-mypy = "^0.950"
+pylint = "^2.14.3"
+mypy = "^0.961"
 black = "^22.3.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
