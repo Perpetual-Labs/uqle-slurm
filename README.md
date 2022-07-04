@@ -39,14 +39,14 @@ This will take you through a configuration wizard.
 Most of the prompts can be left at their defaults, because we will not be using `temp-config.yml`
 to create the cluster.
 
-Below are the important fields:
+Below are the important fields, and what to input for them.
 
 ```text
 Allowed values for AWS Region ID:
-    This must be the correct region, as this cannot be changed later.
+    This must be the correct region, as it cannot be changed later.
 
 Allowed values for EC2 Key Pair Name:
-    This must be the key pair you created and imported locally
+    This must be the key pair you created and imported locally. It will be used to login to the head node.
 
 Allowed values for Scheduler:
     slurm
@@ -65,12 +65,23 @@ Automate Subnet creation? (y/n) [y]:
 ```
 
 Once complete, the tool will initiate the creation of the private and public VPCs.
-You can monitor the progress of this process on [CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2).
+You can monitor the progress on [CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home).
 
-## Creating cluster configuration
+## Create an EC2 instance within the public subnet
+A separate EC2 instance is used to spin up the UQLE API service.
+- Create the EC2 instance in the public VPC created in the steps above
+- Follow the steps given in the UQLE Stack repository to spin up services
+- Add a security group rule that allows the private subnet of the cluster access to the UQLE API port
+- Note the private IP address of the EC2 instance
 
-[chevron](https://github.com/noahmorrison/chevron) is used to fill fields
-in the parallelcluster [configuration template](./config.template.yml) that cannot be automated.
+## Creating the cluster configuration file
+
+This repo provides a [configuration template](./config.template.yml) for a basic Slurm cluster.
+See [here](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configuration-file-v3.html) for documentation on cluster configuration files.
+
+The [chevron](https://github.com/noahmorrison/chevron) CLI tool can be used to populate
+this template with the necessary fields from a [parameter file](./config-parameters.example.json).
+
 
 First, make a copy of the config parameter example file:
 
@@ -78,7 +89,9 @@ First, make a copy of the config parameter example file:
 cp config-parameters.example.json config-parameters.yml
 ```
 
-Then fill the parameter keys in `config-parameters.yml` from the following sources:
+Fill the parameter values in `config-parameters.json`.
+Most of the parameters will be obtained from the `temp-config.yml` we have just created.
+The table below details where to obtain the parameters.
 
 <table>
 <tr>
@@ -181,17 +194,17 @@ HeadNode:
 <tr>
 <td>
 
-`HEAD_NODE_CONFIGURED_SCRIPT`
+`CUSTOM_BOOT_ACTION_SCRIPT`
 
 </td>
 <td>
 
-The URI pointing to a script that will be run on the head node once it is booted and configured.
+The URI pointing to a script that will be run on the all nodes once they are booted and configured.
 
 </td>
 <td>
 
-This corresponds to [this script](./pcluster-headnode-post-install.sh),
+This corresponds to [this script](./custom-boot-action.sh),
 but the script must be made available publicly - either via `http` or [`S3`](https://aws.amazon.com/s3/).
 
 </td>
@@ -208,17 +221,16 @@ but the script must be made available publicly - either via `http` or [`S3`](htt
 
 The Slurm version that will be built and installed onto the cluster head node.
 
-**Note:** This is used as an argument to the head node script.
+**Note:** This is used as an argument to the boot action script.
 
 </td>
 <td>
 
 `21.08.8` - as of *05-2022*
 
-**Note:** The head node already has slurm installed, but is rebuilt and re-installed in
-a custom action in order to enable the Slurm REST API. It is only rebuilt and re-installed
-on the head node, so this may need to be changed if the Slurm version used by ParallelCluster
-changes in future.
+**Note:** The nodes already have slurm installed, but is rebuilt and re-installed in a
+custom action in order to enable the Slurm REST API. The cluster obtains Slurm binaries
+from an nfs-share, so rebuilding Slurm on the head node will propogate to the cluster.
 
 </td>
 </tr>
@@ -234,7 +246,7 @@ changes in future.
 
 The JSON Web Token secret key that Slurm will use to authenticate API requests.
 
-**Note:** This is used as an argument to the head node script.
+**Note:** This is used as an argument to the custom boot script.
 
 </td>
 <td>
@@ -249,22 +261,109 @@ This can be generated. It should be a random sequence of 32 or more characters.
 </tr>
 
 
+<!-- row -->
+<tr>
+<td>
+
+`MACHINE_USER_TOKEN`
+
+</td>
+<td>
+
+The [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) for a GitHub [machine user](https://docs.github.com/en/developers/overview/managing-deploy-keys#machine-users)
+
+**Note:** This is used as an argument to the custom boot script.
+
+</td>
+<td>
+
+This can be created from any user that has read access to the both the UQLE stack and UQLE CLI repositories.
+
+A user, [@uqle-machine-user](https://github.com/uqle-machine-user) has been created for this purpose.
+
+</td>
+</tr>
+
+<!-- row -->
+<tr>
+<td>
+
+`UQLE_CLI_TAG`
+
+</td>
+<td>
+
+The release tag for the UQLE CLI tool to be installed into the gitlab runner on the head node.
+
+**Note:** This is used as an argument to the custom boot script.
+
+**Note:** The head node clones the UQLE stack repository, and uses it to build a gitlab runner. The `MACHINE_USER_TOKEN` is used in this process to clone the repository, and access the UQLE CLI binaries.
+
+</td>
+<td>
+
+[github.com/Perpetual-Labs/uqle-cli/releases](https://github.com/Perpetual-Labs/uqle-cli/releases)
+
+
+</td>
+</tr>
+
+<!-- row -->
+<tr>
+<td>
+
+`UQLE_API_HOST`
+
+</td>
+<td>
+
+The private IP of the EC2 instance created above for the UQLE API.
+
+**Note:** This is used as an argument to the custom boot script.
+
+**Note:** The host should include protocol and port
+- *e.g.* `http://<private-ip>:2323`
+
+</td>
+<td>
+
+You can view the private IP address of an EC2 instance from the [EC2 Dashboard](https://eu-west-2.console.aws.amazon.com/ec2/v2/home)
+
+
+</td>
+</tr>
 
 </table>
 
+Once all parameter values are filled, run the following.
 
+```bash
+chevron --data config-parameters.json config.template.yml > config.yml
+```
 
-2. Copy subnets, region and key pair fields into json file
-3. Run pcluser create
+The file `config.yml` will be generated. This file can now be used to create the cluster.
 
-TODO: add security group details for slurmrest port
+## Creating the cluster
 
+Run the following to initiate creation of the Slurm cluster.
 
-## Updating the Cluster
+```bash
+pcluster create-cluster --cluster-configuration ./config.yml --cluster-name <cluster-name>
+```
+
+The progress of the creation can be monitored from [CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home).
+
+## Connecting cluster to UQLE API
+
+- Add a security group rule to the head node instance that allows access from the public subnet to the slurmrestd port
+
 ## Useful References
+[ParallelCluster v3 configuration file reference](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configuration-file-v3.html)
+
 [Using the Slurm REST API to integrate with distributed architectures on AWS](https://aws.amazon.com/blogs/hpc/using-the-slurm-rest-api-to-integrate-with-distributed-architectures-on-aws/)
 
 [Setting up and Using a Python Client Library for the Slurm REST API](https://github.com/aws-samples/aws-research-workshops/blob/b51852e083121f7edf92b65ff100f99e29643a11/notebooks/parallelcluster/pcluster-slurmrestclient.ipynb)
-- Includes examples outputting to S3
 
 [AWS Workshop - Advanced Slurm on Parallelcluster](https://catalog.us-east-1.prod.workshops.aws/v2/workshops/d431e0b1-9f08-4d82-822e-ea56962b2a0b/en-US)
+
+[Supported Slurm versions for ParallelCluster](https://docs.aws.amazon.com/parallelcluster/latest/ug/slurm-workload-manager-v3.html)
