@@ -17,7 +17,9 @@ EOF
 function install_fuse_overlayfs() {
     yum -q install buildah
 
-    mknod /dev/fuse -m 0666 c 10 229
+    if [[ ! -e /dev/fuse ]]; then
+        mknod /dev/fuse -m 0666 c 10 229
+    fi
 
     pushd $(mktemp -d)
     git clone --depth 1 https://github.com/containers/fuse-overlayfs.git ./overlay
