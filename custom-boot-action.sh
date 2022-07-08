@@ -21,6 +21,10 @@ JWT_KEY_FILE=$JWT_KEY_DIR/jwt_hs256.key
 SLURMDBD_USER="slurm"
 SLURM_PASSWORD_FILE=/root/slurmdb.password
 
+. /etc/parallelcluster/cfnconfig
+
+echo "Node type: ${cfn_node_type}"
+
 function configure_yum() {
     cat >> /etc/yum.conf <<EOF
 assumeyes=1
@@ -42,7 +46,12 @@ EOF
 }
 
 function install_docker() {
-    yum -q install docker containerd
+    yum -q install yum-utils
+
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    yum -q install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
 }
 
 function yum_cleanup() {
@@ -52,7 +61,7 @@ function yum_cleanup() {
 
 function install_head_node_dependencies() {
     # MariaDB repository setup
-    curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash -s -- --os-type=rhel --os-version=7 --skip-maxscale --skip-tools
+    curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash
 
     yum_cleanup
 
@@ -95,7 +104,8 @@ function create_and_save_slurmdb_password() {
 
 function configure_slurm_database() {
 
-    systemctl enable --now mariadb.service
+    systemctl enable mariadb.service
+    systemctl start mariadb.service
 
     create_and_save_slurmdb_password
 
@@ -105,25 +115,53 @@ function configure_slurm_database() {
     mysql --wait -e "GRANT ALL ON *.* to '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
 }
 
+function create_docker_run_script() {
+
+    local script=/usr/local/bin/run_rootless_docker.sh
+
+    cat > $script <<EOF
+#!/usr/bin/env bash
+
+# run docker daemon if not already running
+if [[ ! -e \$XDG_RUNTIME_DIR/docker.pid ]]; then
+    dockerd-rootless.sh &> /dev/null &
+fi
+EOF
+
+    chmod +x $script
+
+}
+
+function setup_rootless_docker() {
+
+    local username="$1"
+
+    sudo -i -u $username -- eval "echo 'run_rootless_docker.sh' >> ~/.bashrc"
+    sudo -i -u $username -- eval "echo 'docker context use rootless &> /dev/null' >> ~/.bashrc"
+}
+
 function configure_docker() {
-    # Install compose and enable docker service
+    create_docker_run_script
 
-    local docker_plugins=/usr/local/lib/docker/cli-plugins
-    local compose_binary_url=https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-linux-x86_64
+    systemctl disable docker.service docker.socket
+    systemctl stop docker.service docker.socket
 
-    # Install docker-compose and make accessible as a cli plugin and a standalone command
-    mkdir -p ${docker_plugins}
-    curl -SL ${compose_binary_url} -o ${docker_plugins}/docker-compose
-    chmod +x ${docker_plugins}/docker-compose
-    ln -s ${docker_plugins}/docker-compose /usr/local/bin/docker-compose
+    # https://docs.docker.com/engine/security/rootless/#prerequisites
+    echo "user.max_user_namespaces=28633" >> /etc/sysctl.conf
+    sysctl --system
 
-    groupadd -f -g 387 docker
-    groupmod -g 387 docker
+    echo "slurm:165536:65536" | tee -a /etc/subuid /etc/subgid
 
-    usermod -aG docker ec2-user
-    usermod -aG docker slurm
+    sudo -i -u centos -- dockerd-rootless-setuptool.sh install
+    sudo -i -u slurm -- dockerd-rootless-setuptool.sh install
 
-    systemctl enable --now containerd.service docker.service
+    # /home is nfs-shared, so only run scripts that modify ~/.bashrc if we're on head node
+    # Otherwise, the changes will be duplicated
+    if [[ "${cfn_node_type}" == "HeadNode" ]]; then
+        setup_rootless_docker centos
+        setup_rootless_docker slurm
+    fi
+
 }
 
 function rebuild_slurm() {
@@ -246,10 +284,14 @@ EOF
 
 function reload_and_enable_services() {
     systemctl daemon-reload
-    systemctl enable --now slurmrestd.service slurmdbd.service slurmctld.service
+    systemctl enable slurmrestd.service slurmdbd.service slurmctld.service
+    systemctl start slurmrestd.service slurmdbd.service slurmctld.service
 }
 
 function install_and_run_gitlab_runner() {
+    # reload shell to load docker context
+    exec ${SHELL} --login
+
     # Clone UQLE repo and spin up compose service for gitlab runner
     pushd /tmp
     git clone -b dev --depth 1 https://${MACHINE_USER_TOKEN}@github.com/Perpetual-Labs/uqle.git ./uqle
@@ -259,10 +301,12 @@ function install_and_run_gitlab_runner() {
     UQLE_CLI_TAG=${CLI_TAG} UQLE_CLI_TOKEN=${MACHINE_USER_TOKEN} UQLE_API_HOST=${UQLE_API_HOST} docker-compose --file ./docker-compose-gitlab-runner.yml up --detach --build
 }
 
+
 function head_node_action() {
     echo "Running head node boot action"
 
-    systemctl disable --now slurmctld.service
+    systemctl disable slurmctld.service
+    systemctl stop slurmctld.service
 
     configure_yum
 
@@ -290,13 +334,14 @@ function head_node_action() {
 
     configure_docker
 
-    install_and_run_gitlab_runner
+    # install_and_run_gitlab_runner
 
 }
 
 function compute_node_action() {
     echo "Running compute node boot action"
-    systemctl disable --now slurmd.service
+    systemctl disable slurmd.service
+    systemctl stop slurmd.service
 
     configure_yum
 
@@ -304,13 +349,9 @@ function compute_node_action() {
 
     configure_docker
 
-    systemctl enable --now slurmd.service
+    systemctl enable slurmd.service
+    systemctl start slurmd.service
 }
-
-
-. /etc/parallelcluster/cfnconfig
-
-echo "Node type: ${cfn_node_type}"
 
 if [[ "${cfn_node_type}" == "HeadNode" ]]; then
     head_node_action
