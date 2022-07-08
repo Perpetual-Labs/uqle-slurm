@@ -45,14 +45,6 @@ AccountingStorageType=accounting_storage/slurmdbd
 EOF
 }
 
-function install_docker() {
-    yum -q install yum-utils
-
-    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-
-    yum -q install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-}
 
 function yum_cleanup() {
     yum -q clean all
@@ -67,7 +59,7 @@ function install_head_node_dependencies() {
 
     yum -q update
 
-    yum -q install -y epel-release
+    yum -q install epel-release
     yum-config-manager -y --enable epel
     # Slurm build deps
     yum -q install libyaml-devel libjwt-devel http-parser-devel json-c-devel
@@ -75,8 +67,8 @@ function install_head_node_dependencies() {
     yum -q install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
     # mariadb
     yum -q install MariaDB-server
-
-    install_docker
+    # podman
+    yum -q install fuse-overlayfs slirp4netns podman
 
     # Install go-task, see https://taskfile.dev/install.sh
     sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
@@ -89,7 +81,7 @@ function install_compute_node_dependencies() {
 
     yum -q update
 
-    install_docker
+    yum -q install podman
 
     yum_cleanup
 }
@@ -115,53 +107,35 @@ function configure_slurm_database() {
     mysql --wait -e "GRANT ALL ON *.* to '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
 }
 
-function create_docker_run_script() {
 
-    local script=/usr/local/bin/run_rootless_docker.sh
+function configure_users() {
 
-    cat > $script <<EOF
-#!/usr/bin/env bash
+    sysctl user.max_user_namespaces=15000
+    usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
 
-# run docker daemon if not already running
-if [[ ! -e \$XDG_RUNTIME_DIR/docker.pid ]]; then
-    dockerd-rootless.sh &> /dev/null &
-fi
-EOF
+    cat << 'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
+# Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
+# See basedir-spec at https://specifications.freedesktop.org/
 
-    chmod +x $script
+if [ -z "$XDG_RUNTIME_DIR" ]; then
+    XDG_RUNTIME_DIR=/run/user/$(id -u)  # Try systemd default path
 
-}
-
-function setup_rootless_docker() {
-
-    local username="$1"
-
-    sudo -i -u $username -- eval "echo 'run_rootless_docker.sh' >> ~/.bashrc"
-    sudo -i -u $username -- eval "echo 'docker context use rootless &> /dev/null' >> ~/.bashrc"
-}
-
-function configure_docker() {
-    create_docker_run_script
-
-    systemctl disable docker.service docker.socket
-    systemctl stop docker.service docker.socket
-
-    # https://docs.docker.com/engine/security/rootless/#prerequisites
-    echo "user.max_user_namespaces=28633" >> /etc/sysctl.conf
-    sysctl --system
-
-    echo "slurm:165536:65536" | tee -a /etc/subuid /etc/subgid
-
-    sudo -i -u centos -- dockerd-rootless-setuptool.sh install
-    sudo -i -u slurm -- dockerd-rootless-setuptool.sh install
-
-    # /home is nfs-shared, so only run scripts that modify ~/.bashrc if we're on head node
-    # Otherwise, the changes will be duplicated
-    if [[ "${cfn_node_type}" == "HeadNode" ]]; then
-        setup_rootless_docker centos
-        setup_rootless_docker slurm
+    # If this default doesn't exist, create a temporary directory
+    if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+        XDG_RUNTIME_DIR=$(mktemp -qd /tmp/$(id -u)-runtime-XXXXXXXXXX)
     fi
 
+fi
+
+export XDG_RUNTIME_DIR
+export XDG_DATA_HOME=$XDG_RUNTIME_DIR/.local/share
+export XDG_STATE_HOME=$XDG_RUNTIME_DIR/.state
+export XDG_CACHE_HOME=$XDG_RUNTIME_DIR/.cache
+
+# Config files can remain common to all nodes
+export XDG_CONFIG_HOME=$HOME/.config
+
+EOF
 }
 
 function rebuild_slurm() {
@@ -182,7 +156,6 @@ function rebuild_slurm() {
     wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2
     tar xjf slurm-${SLURM_VERSION}.tar.bz2
     pushd slurm-${SLURM_VERSION}
-
 
     # configure and build slurm
     ./configure --silent --prefix=/opt/slurm --with-pmix=/opt/pmix --enable-slurmrestd
@@ -246,7 +219,6 @@ EOF
 }
 
 function create_slurmrest_service() {
-    useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
 
     cat >/etc/systemd/system/slurmrestd.service<<EOF
 [Unit]
@@ -308,11 +280,13 @@ function head_node_action() {
     systemctl disable slurmctld.service
     systemctl stop slurmctld.service
 
-    configure_yum
+    configure_users
 
-    install_head_node_dependencies
+    # configure_yum
 
-    configure_slurm_database
+    # install_head_node_dependencies
+
+    # configure_slurm_database
 
     rebuild_slurm
 
@@ -324,6 +298,7 @@ function head_node_action() {
 
     create_slurmdb_conf
 
+    useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
     create_slurmrest_service
 
     create_slurmdb_service
@@ -331,8 +306,6 @@ function head_node_action() {
     reload_and_enable_services
 
     chown slurm:slurm /shared
-
-    configure_docker
 
     # install_and_run_gitlab_runner
 
@@ -343,11 +316,11 @@ function compute_node_action() {
     systemctl disable slurmd.service
     systemctl stop slurmd.service
 
-    configure_yum
+    configure_users
 
-    install_compute_node_dependencies
+    # configure_yum
 
-    configure_docker
+    # install_compute_node_dependencies
 
     systemctl enable slurmd.service
     systemctl start slurmd.service
