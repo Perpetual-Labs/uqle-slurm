@@ -52,8 +52,7 @@ function install_head_node_dependencies() {
     yum -q install MariaDB-server
 
     # podman
-    install_fuse_overlayfs
-    yum -q install slirp4netns podman
+    yum -q install fuse-overlayfs slirp4netns podman
 
     # Install go-task, see https://taskfile.dev/install.sh
     sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
@@ -105,6 +104,8 @@ function compute_node_action() {
 
 function head_node_action() {
     echo "Running head node boot action"
+
+    sysctl user.max_user_namespaces=15000
 
     useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
 
