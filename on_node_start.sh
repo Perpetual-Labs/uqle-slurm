@@ -3,6 +3,9 @@
 # https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425#file-bash_strict_mode-md
 set -euxo pipefail
 
+. /etc/parallelcluster/cfnconfig
+
+echo "Node type: ${cfn_node_type}"
 
 function configure_yum() {
     cat >> /etc/yum.conf <<EOF
@@ -17,10 +20,10 @@ function install_fuse_overlayfs() {
     mknod /dev/fuse -m 0666 c 10 229
 
     pushd $(mktemp -d)
-    git clone -b dev --depth 1 https://${MACHINE_USER_TOKEN}@github.com/Perpetual-Labs/uqle.git ./uqle
-    popd
-    https://github.com/containers/fuse-overlayfs.git
-
+    git clone --depth 1 https://github.com/containers/fuse-overlayfs.git ./overlay
+    pushd ./overlay
+    buildah bud -v $PWD:/build/fuse-overlayfs -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
+    cp fuse-overlayfs /usr/bin/
 
 }
 
@@ -45,8 +48,10 @@ function install_head_node_dependencies() {
     yum -q install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
     # mariadb
     yum -q install MariaDB-server
+
     # podman
-    yum -q install fuse-overlayfs slirp4netns podman
+    install_fuse_overlayfs
+    yum -q install slirp4netns podman
 
     # Install go-task, see https://taskfile.dev/install.sh
     sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
