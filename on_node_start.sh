@@ -61,12 +61,13 @@ function install_head_node_dependencies() {
 }
 
 function create_and_save_slurmdb_password() {
-    if [[ -e "$SLURM_PASSWORD_FILE" ]]; then
+    local slurm_password_file=/root/slurmdb.password
+    if [[ -e "$slurm_password_file" ]]; then
         echo "Error: create_and_save_slurmdb_password() was called when a password file already exists" >&2
         return 1
     fi
 
-    echo -n $(pwmake 128) > $SLURM_PASSWORD_FILE
+    echo -n $(pwmake 128) > $slurm_password_file
 }
 
 function configure_slurm_database() {
@@ -76,10 +77,11 @@ function configure_slurm_database() {
 
     create_and_save_slurmdb_password
 
-    local slurmdbd_password=$(cat "${SLURM_PASSWORD_FILE}")
+    local slurmdbd_password=$(cat /root/slurmdb.password)
+    local slurmdbd_user="slurm"
 
-    mysql --wait -e "CREATE USER '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}'"
-    mysql --wait -e "GRANT ALL ON *.* to '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
+    mysql --wait -e "CREATE USER '${slurmdbd_user}'@'localhost' identified by '${slurmdbd_password}'"
+    mysql --wait -e "GRANT ALL ON *.* to '${slurmdbd_user}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
 }
 
 function install_compute_node_dependencies() {
