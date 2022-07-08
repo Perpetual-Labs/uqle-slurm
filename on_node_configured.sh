@@ -298,7 +298,7 @@ function head_node_action() {
 
     create_slurmdb_conf
 
-    useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
+    # useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
     create_slurmrest_service
 
     create_slurmdb_service

@@ -92,41 +92,21 @@ function compute_node_action() {
     configure_yum
     install_compute_node_dependencies
     # TODO overlayfs
+
 }
 
 
 function head_node_action() {
     echo "Running head node boot action"
 
-
-    configure_users
+    useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
 
     configure_yum
 
     install_head_node_dependencies
+    # TODO overlayfs
 
     configure_slurm_database
-
-    rebuild_slurm
-
-    write_jwt_key_file
-
-    modify_slurm_conf
-
-    create_slurmrest_conf
-
-    create_slurmdb_conf
-
-    useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
-    create_slurmrest_service
-
-    create_slurmdb_service
-
-    reload_and_enable_services
-
-    chown slurm:slurm /shared
-
-    # install_and_run_gitlab_runner
 
 }
 
