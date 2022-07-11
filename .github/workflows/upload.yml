@@ -1,5 +1,5 @@
 name: S3 deploy scripts
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -17,3 +17,4 @@ jobs:
           bucket-region: ${{ secrets.S3_BUCKET_REGION }}
           no-cache: true
           filesToInclude: "on_node_configured.sh,on_node_start.sh"
+          delete-removed: true
