@@ -256,8 +256,8 @@ EOF
 
 function reload_and_enable_services() {
     systemctl daemon-reload
-    systemctl enable slurmrestd.service slurmdbd.service slurmctld.service
-    systemctl start slurmrestd.service slurmdbd.service slurmctld.service
+    systemctl enable slurmctld.service # slurmrestd.service slurmdbd.service
+    systemctl start slurmctld.service # slurmrestd.service slurmdbd.service
 }
 
 function install_and_run_gitlab_runner() {
@@ -288,20 +288,20 @@ function head_node_action() {
 
     # configure_slurm_database
 
-    rebuild_slurm
+    # rebuild_slurm
 
     write_jwt_key_file
 
-    modify_slurm_conf
+    # modify_slurm_conf
 
-    create_slurmrest_conf
+    # create_slurmrest_conf
 
-    create_slurmdb_conf
+    # create_slurmdb_conf
 
     # useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
-    create_slurmrest_service
+    # create_slurmrest_service
 
-    create_slurmdb_service
+    # create_slurmdb_service
 
     reload_and_enable_services
 
