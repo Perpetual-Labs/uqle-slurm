@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 
 # https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425#file-bash_strict_mode-md
-set -euxo pipefail
+set -euo pipefail
 
 #####
 # Script arguments
 #####
-SLURM_VERSION="$1"
-SLURM_JWT_KEY="$2"
+SLURM_JWT_KEY="$1"
 # GitHub release tag for UQLE CLI tool
-CLI_TAG="$3"
+CLI_TAG="$2"
 # GitHub OAuth token - should have read access to UQLE CLI releases, and the UQLE stack repository
-MACHINE_USER_TOKEN="$4"
-UQLE_API_HOST="$5"
+MACHINE_USER_TOKEN="$3"
+UQLE_API_HOST="$4"
 
 
 # global variables
@@ -46,45 +45,6 @@ EOF
 }
 
 
-function yum_cleanup() {
-    yum -q clean all
-    rm -rf /var/cache/yum
-}
-
-function install_head_node_dependencies() {
-    # MariaDB repository setup
-    curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash
-
-    yum_cleanup
-
-    yum -q update
-
-    yum -q install epel-release
-    yum-config-manager -y --enable epel
-    # Slurm build deps
-    yum -q install libyaml-devel libjwt-devel http-parser-devel json-c-devel
-    # Pyenv build deps
-    yum -q install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
-    # mariadb
-    yum -q install MariaDB-server
-    # podman
-    yum -q install fuse-overlayfs slirp4netns podman
-
-    # Install go-task, see https://taskfile.dev/install.sh
-    sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-
-    yum_cleanup
-}
-
-function install_compute_node_dependencies() {
-    yum_cleanup
-
-    yum -q update
-
-    yum -q install podman
-
-    yum_cleanup
-}
 function create_and_save_slurmdb_password() {
     if [[ -e "$SLURM_PASSWORD_FILE" ]]; then
         echo "Error: create_and_save_slurmdb_password() was called when a password file already exists" >&2
@@ -93,20 +53,6 @@ function create_and_save_slurmdb_password() {
 
     echo -n $(pwmake 128) > $SLURM_PASSWORD_FILE
 }
-
-function configure_slurm_database() {
-
-    systemctl enable mariadb.service
-    systemctl start mariadb.service
-
-    create_and_save_slurmdb_password
-
-    local slurmdbd_password=$(cat "${SLURM_PASSWORD_FILE}")
-
-    mysql --wait -e "CREATE USER '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}'"
-    mysql --wait -e "GRANT ALL ON *.* to '${SLURMDBD_USER}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
-}
-
 
 function configure_users_common() {
     sysctl user.max_user_namespaces=15000
@@ -134,36 +80,6 @@ export XDG_CACHE_HOME=$XDG_RUNTIME_DIR/.cache
 export XDG_CONFIG_HOME=$HOME/.config
 
 EOF
-}
-
-function rebuild_slurm() {
-    # rebuild slurm with slurmrest daemon enabled
-
-    # Python3 is requred to build slurm >= 20.02,
-    export PYENV_ROOT=/opt/parallelcluster/pyenv
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)"
-    pyenv install -s 3.7.13
-
-    pushd /shared
-
-    $PYENV_ROOT/versions/3.7.13/bin/python -m venv .venv
-
-    . .venv/bin/activate
-
-    wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2
-    tar xjf slurm-${SLURM_VERSION}.tar.bz2
-    pushd slurm-${SLURM_VERSION}
-
-    # configure and build slurm
-    ./configure --silent --prefix=/opt/slurm --with-pmix=/opt/pmix --enable-slurmrestd
-    make -s -j
-    make -s install
-    make -s install-contrib
-
-    deactivate
-
-    popd && rm -rf "slurm-${SLURM_VERSION}" .venv
 }
 
 function write_jwt_key_file() {
@@ -258,18 +174,18 @@ function reload_and_enable_services() {
     systemctl start slurmctld.service slurmrestd.service slurmdbd.service
 }
 
-function install_and_run_gitlab_runner() {
-    # reload shell to load docker context
-    exec ${SHELL} --login
+# function install_and_run_gitlab_runner() {
+#     # reload shell to load docker context
+#     exec ${SHELL} --login
 
-    # Clone UQLE repo and spin up compose service for gitlab runner
-    pushd /tmp
-    git clone -b dev --depth 1 https://${MACHINE_USER_TOKEN}@github.com/Perpetual-Labs/uqle.git ./uqle
-    pushd uqle
+#     # Clone UQLE repo and spin up compose service for gitlab runner
+#     pushd /tmp
+#     git clone -b dev --depth 1 https://${MACHINE_USER_TOKEN}@github.com/Perpetual-Labs/uqle.git ./uqle
+#     pushd uqle
 
-    docker network create uqle_network
-    UQLE_CLI_TAG=${CLI_TAG} UQLE_CLI_TOKEN=${MACHINE_USER_TOKEN} UQLE_API_HOST=${UQLE_API_HOST} docker-compose --file ./docker-compose-gitlab-runner.yml up --detach --build
-}
+#     docker network create uqle_network
+#     UQLE_CLI_TAG=${CLI_TAG} UQLE_CLI_TOKEN=${MACHINE_USER_TOKEN} UQLE_API_HOST=${UQLE_API_HOST} docker-compose --file ./docker-compose-gitlab-runner.yml up --detach --build
+# }
 
 
 function head_node_action() {
@@ -278,7 +194,7 @@ function head_node_action() {
     systemctl disable slurmctld.service
     systemctl stop slurmctld.service
 
-    configure_users
+    configure_users_head_node
 
     write_jwt_key_file
 
