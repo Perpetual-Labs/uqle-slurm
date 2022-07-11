@@ -108,23 +108,21 @@ function configure_slurm_database() {
 }
 
 
-function configure_users() {
-
+function configure_users_common() {
     sysctl user.max_user_namespaces=15000
     usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
+}
+
+function configure_users_head_node() {
+    configure_users_common
 
     cat << 'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 
-if [ -z "$XDG_RUNTIME_DIR" ]; then
-    XDG_RUNTIME_DIR=/run/user/$(id -u)  # Try systemd default path
-
-    # If this default doesn't exist, create a temporary directory
-    if [ ! -d "$XDG_RUNTIME_DIR" ]; then
-        XDG_RUNTIME_DIR=$(mktemp -qd /tmp/$(id -u)-runtime-XXXXXXXXXX)
-    fi
-
+# If default is undefined or doesn't exist, make a new directory
+if [ ! -z "$XDG_RUNTIME_DIR" ] && [ ! -d "$XDG_RUNTIME_DIR" ]; then
+    XDG_RUNTIME_DIR=$(mktemp -qd /tmp/$(id -u)-runtime-XXXXXXXXXX)
 fi
 
 export XDG_RUNTIME_DIR
@@ -256,8 +254,8 @@ EOF
 
 function reload_and_enable_services() {
     systemctl daemon-reload
-    systemctl enable slurmctld.service # slurmrestd.service slurmdbd.service
-    systemctl start slurmctld.service # slurmrestd.service slurmdbd.service
+    systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
+    systemctl start slurmctld.service slurmrestd.service slurmdbd.service
 }
 
 function install_and_run_gitlab_runner() {
@@ -282,32 +280,21 @@ function head_node_action() {
 
     configure_users
 
-    # configure_yum
-
-    # install_head_node_dependencies
-
-    # configure_slurm_database
-
-    # rebuild_slurm
-
     write_jwt_key_file
 
-    # modify_slurm_conf
+    modify_slurm_conf
 
-    # create_slurmrest_conf
+    create_slurmrest_conf
 
-    # create_slurmdb_conf
+    create_slurmdb_conf
 
-    # useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
-    # create_slurmrest_service
+    create_slurmrest_service
 
-    # create_slurmdb_service
+    create_slurmdb_service
 
     reload_and_enable_services
 
     chown slurm:slurm /shared
-
-    # install_and_run_gitlab_runner
 
 }
 
@@ -316,11 +303,7 @@ function compute_node_action() {
     systemctl disable slurmd.service
     systemctl stop slurmd.service
 
-    configure_users
-
-    # configure_yum
-
-    # install_compute_node_dependencies
+    configure_users_common
 
     systemctl enable slurmd.service
     systemctl start slurmd.service
