@@ -51,7 +51,7 @@ function create_and_save_slurmdb_password() {
         return 1
     fi
 
-    echo -n $(pwmake 128) > $SLURM_PASSWORD_FILE
+    echo -n $(openssl rand -hex 32) > $SLURM_PASSWORD_FILE
 }
 
 function configure_users_common() {
