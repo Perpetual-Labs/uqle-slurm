@@ -170,12 +170,6 @@ RequiredBy=slurmctld.service
 EOF
 }
 
-function reload_and_enable_services() {
-    systemctl daemon-reload
-    systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
-    systemctl start slurmctld.service slurmrestd.service slurmdbd.service
-}
-
 # function install_and_run_gitlab_runner() {
 #     # reload shell to load docker context
 #     exec ${SHELL} --login
@@ -210,7 +204,13 @@ function head_node_action() {
 
     create_slurmdb_service
 
-    reload_and_enable_services
+    systemctl daemon-reload
+    systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
+
+    systemctl start slurmdbd.service
+    sudo -u slurm /opt/slurm/bin/sacctmgr -i add cluster parallelcluster
+
+    systemctl start slurmctld.service slurmrestd.service
 
     chown slurm:slurm /shared
 
