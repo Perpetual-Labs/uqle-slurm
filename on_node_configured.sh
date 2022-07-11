@@ -41,6 +41,7 @@ AuthAltTypes=auth/jwt
 # ACCOUNTING
 JobAcctGatherType=jobacct_gather/linux
 AccountingStorageType=accounting_storage/slurmdbd
+AccountingStoragePort=6819
 EOF
 }
 
@@ -118,6 +119,7 @@ function create_slurmdb_conf() {
 AuthType=auth/munge
 DbdHost=localhost
 DebugLevel=info
+DbdPort=6819
 SlurmUser=slurm
 LogFile=/var/log/slurmdbd.log
 StorageType=accounting_storage/mysql

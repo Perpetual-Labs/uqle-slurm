@@ -77,11 +77,13 @@ function configure_slurm_database() {
 
     create_and_save_slurmdb_password
 
-    local slurmdbd_password=$(cat /root/slurmdb.password)
+    local slurmdbd_password="$(cat /root/slurmdb.password)"
     local slurmdbd_user="slurm"
+    local slurmdb_name="slurm_acct_db"
 
     mysql --wait -e "CREATE USER '${slurmdbd_user}'@'localhost' identified by '${slurmdbd_password}'"
-    mysql --wait -e "GRANT ALL ON *.* to '${slurmdbd_user}'@'localhost' identified by '${slurmdbd_password}' with GRANT option"
+    mysql --wait -e "CREATE DATABASE ${slurmdb_name}"
+    mysql --wait -e "GRANT ALL ON ${slurmdb_name}.* to '${slurmdbd_user}'@'localhost' identified by '${slurmdbd_password}'"
 }
 
 function install_compute_node_dependencies() {
