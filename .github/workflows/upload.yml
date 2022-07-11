@@ -13,4 +13,4 @@ jobs:
       - name: Deploy
         uses: rlkennedyreid/aws-cli-action@v0.1.0
         with:
-          args: s3 cp ./on_node_configured.sh s3://${{ secrets.S3_BUCKET }}
+          args: s3 cp --recursive --exclude "*" --include "on_node_configured.sh" --include "on_node_start.sh" . s3://${{ secrets.S3_BUCKET }}
