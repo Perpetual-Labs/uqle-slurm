@@ -24,13 +24,6 @@ SLURM_PASSWORD_FILE=/root/slurmdb.password
 
 echo "Node type: ${cfn_node_type}"
 
-function configure_yum() {
-    cat >> /etc/yum.conf <<EOF
-assumeyes=1
-clean_requirements_on_remove=1
-EOF
-}
-
 function modify_slurm_conf() {
     # add JWT auth and accounting config to slurm.conf
     # /opt/slurm is shared via nfs, so this only needs to be configured on head node
@@ -45,15 +38,6 @@ AccountingStoragePort=6819
 EOF
 }
 
-
-function create_and_save_slurmdb_password() {
-    if [[ -e "$SLURM_PASSWORD_FILE" ]]; then
-        echo "Error: create_and_save_slurmdb_password() was called when a password file already exists" >&2
-        return 1
-    fi
-
-    echo -n $(openssl rand -hex 32) > $SLURM_PASSWORD_FILE
-}
 
 function configure_users_common() {
     sysctl user.max_user_namespaces=15000
@@ -169,19 +153,6 @@ WantedBy=multi-user.target
 RequiredBy=slurmctld.service
 EOF
 }
-
-# function install_and_run_gitlab_runner() {
-#     # reload shell to load docker context
-#     exec ${SHELL} --login
-
-#     # Clone UQLE repo and spin up compose service for gitlab runner
-#     pushd /tmp
-#     git clone -b dev --depth 1 https://${MACHINE_USER_TOKEN}@github.com/Perpetual-Labs/uqle.git ./uqle
-#     pushd uqle
-
-#     docker network create uqle_network
-#     UQLE_CLI_TAG=${CLI_TAG} UQLE_CLI_TOKEN=${MACHINE_USER_TOKEN} UQLE_API_HOST=${UQLE_API_HOST} docker-compose --file ./docker-compose-gitlab-runner.yml up --detach --build
-# }
 
 
 function head_node_action() {
