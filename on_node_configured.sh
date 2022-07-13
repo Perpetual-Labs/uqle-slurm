@@ -57,13 +57,14 @@ if [ ! -z "$XDG_RUNTIME_DIR" ] && [ ! -d "$XDG_RUNTIME_DIR" ]; then
 fi
 
 export XDG_RUNTIME_DIR
-export XDG_DATA_HOME=$XDG_RUNTIME_DIR/.local/share
-export XDG_STATE_HOME=$XDG_RUNTIME_DIR/.state
-export XDG_CACHE_HOME=$XDG_RUNTIME_DIR/.cache
+export XDG_DATA_HOME=$XDG_RUNTIME_DIR/.local/share && mkdir -p "$XDG_DATA_HOME"
+export XDG_STATE_HOME=$XDG_RUNTIME_DIR/.state && mkdir -p "$XDG_STATE_HOME"
+export XDG_CACHE_HOME=$XDG_RUNTIME_DIR/.cache && mkdir -p "$XDG_CACHE_HOME"
 
 # Config files can remain common to all nodes
-export XDG_CONFIG_HOME=$HOME/.config
+export XDG_CONFIG_HOME=$XDG_RUNTIME_DIR/.config && mkdir -p "$XDG_CONFIG_HOME"
 
+alias podman='podman --runroot="$XDG_RUNTIME_DIR" --root="$XDG_DATA_HOME"'
 EOF
 }
 
