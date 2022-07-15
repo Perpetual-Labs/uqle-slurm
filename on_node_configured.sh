@@ -15,13 +15,13 @@ SLURM_JWT_KEY="$1"
 
 # global variables
 JWT_KEY_DIR=/var/spool/slurm.state
-JWT_KEY_FILE=$JWT_KEY_DIR/jwt_hs256.key
+JWT_KEY_FILE="$JWT_KEY_DIR"/jwt_hs256.key
 SLURMDBD_USER="slurm"
 SLURM_PASSWORD_FILE=/root/slurmdb.password
 
 . /etc/parallelcluster/cfnconfig
 
-echo "Node type: ${cfn_node_type}"
+echo "Node type: $cfn_node_type"
 
 function modify_slurm_conf() {
     # add JWT auth and accounting config to slurm.conf
@@ -70,19 +70,19 @@ EOF
 
 function write_jwt_key_file() {
     # set the jwt key
-    if [ "${SLURM_JWT_KEY}" ]; then
+    if [ "$SLURM_JWT_KEY" ]; then
         echo "- JWT secret variable found, writing..."
 
-        mkdir -p $JWT_KEY_DIR
+        mkdir -p "$JWT_KEY_DIR"
 
-        echo -n "${SLURM_JWT_KEY}" >${JWT_KEY_FILE}
+        echo -n "$SLURM_JWT_KEY" >"$JWT_KEY_FILE"
     else
         echo "Error: JWT key not present in environment - aborting cluster deployment" >&2
         return 1
     fi
 
-    chown slurm:slurm $JWT_KEY_FILE
-    chmod 0600 $JWT_KEY_FILE
+    chown slurm:slurm "$JWT_KEY_FILE"
+    chmod 0600 "$JWT_KEY_FILE"
 }
 
 function create_slurmrest_conf() {
@@ -97,7 +97,7 @@ EOF
 
 function create_slurmdb_conf() {
     local slurmdbd_password
-    slurmdbd_password=$(cat "${SLURM_PASSWORD_FILE}")
+    slurmdbd_password=$(cat "$SLURM_PASSWORD_FILE")
     # create the slurmdbd.conf file
     cat >/opt/slurm/etc/slurmdbd.conf <<EOF
 AuthType=auth/munge
@@ -212,8 +212,8 @@ function compute_node_action() {
     systemctl start slurmd.service
 }
 
-if [[ "${cfn_node_type}" == "HeadNode" ]]; then
+if [[ "$cfn_node_type" == "HeadNode" ]]; then
     head_node_action
-elif [[ "${cfn_node_type}" == "ComputeFleet" ]]; then
+elif [[ "$cfn_node_type" == "ComputeFleet" ]]; then
     compute_node_action
 fi
