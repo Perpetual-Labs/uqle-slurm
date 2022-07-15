@@ -33,6 +33,9 @@ function yum_cleanup() {
     yum -q clean all
     rm -rf /var/cache/yum
 }
+function install_podman() {
+    yum -q install fuse-overlayfs slirp4netns podman
+}
 
 function install_head_node_dependencies() {
     # MariaDB repository setup
@@ -44,15 +47,12 @@ function install_head_node_dependencies() {
 
     yum -q install epel-release
     yum-config-manager -y --enable epel
-    # Slurm build deps
-    yum -q install libyaml-devel libjwt-devel http-parser-devel json-c-devel
-    # Pyenv build deps
-    yum -q install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
+
     # mariadb
     yum -q install MariaDB-server
 
     # podman
-    yum -q install fuse-overlayfs slirp4netns podman
+    install_podman
 
     # Install go-task, see https://taskfile.dev/install.sh
     sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
@@ -93,7 +93,7 @@ function install_compute_node_dependencies() {
 
     yum -q update
 
-    yum -q install podman
+    install_podman
 
     yum_cleanup
 }
