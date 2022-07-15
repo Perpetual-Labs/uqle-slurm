@@ -50,20 +50,21 @@ function configure_users_head_node() {
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 
-# If default is undefined or doesn't exist, make a new directory
-if [ ! -z "$XDG_RUNTIME_DIR" ] && [ ! -d "$XDG_RUNTIME_DIR" ]; then
-    XDG_RUNTIME_DIR=$(mktemp -qd /tmp/$(id -u)-runtime-XXXXXXXXXX)
-fi
+base_xdg_dir=$(mktemp -qd /tmp/"$(id -u)"-xdg-XXXXXXXXXX)
 
-export XDG_RUNTIME_DIR
-export XDG_DATA_HOME=$XDG_RUNTIME_DIR/.local/share && mkdir -p "$XDG_DATA_HOME"
-export XDG_STATE_HOME=$XDG_RUNTIME_DIR/.state && mkdir -p "$XDG_STATE_HOME"
-export XDG_CACHE_HOME=$XDG_RUNTIME_DIR/.cache && mkdir -p "$XDG_CACHE_HOME"
+export XDG_RUNTIME_DIR="$base_xdg_dir"/.runtime
+export XDG_DATA_HOME="$base_xdg_dir"/.data
+export XDG_STATE_HOME="$base_xdg_dir"/.state
+export XDG_CACHE_HOME="$base_xdg_dir"/.cache
+export XDG_CONFIG_HOME="$base_xdg_dir"/.config
 
-# Config files can remain common to all nodes
-export XDG_CONFIG_HOME=$XDG_RUNTIME_DIR/.config && mkdir -p "$XDG_CONFIG_HOME"
+unset base_xdg_dir
 
-alias podman='podman --runroot="$XDG_RUNTIME_DIR" --root="$XDG_DATA_HOME"'
+for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CACHE_HOME","$XDG_CONFIG_HOME"}; do
+    mkdir -p "$directory"
+done
+
+alias podman="podman --runroot=\$XDG_RUNTIME_DIR --root=\$XDG_DATA_HOME"
 EOF
 }
 
@@ -156,7 +157,7 @@ ConditionPathExists=/opt/slurm/etc/slurmdbd.conf
 
 [Service]
 EnvironmentFile=/etc/sysconfig/slurmdbd
-ExecStart=/opt/slurm/sbin/slurmdbd
+ExecStart=/opt/slurm/sbin/slurmdbd $SLURMDBD_OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -INT $MAINPID
 
