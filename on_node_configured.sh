@@ -33,6 +33,7 @@ AuthAltTypes=auth/jwt
 # ACCOUNTING
 JobAcctGatherType=jobacct_gather/linux
 AccountingStorageType=accounting_storage/slurmdbd
+AccountingStorageHost=localhost
 AccountingStoragePort=6819
 EOF
 }
