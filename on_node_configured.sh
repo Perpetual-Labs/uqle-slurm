@@ -119,15 +119,22 @@ EOF
 
 function create_slurmrest_service() {
 
-    cat >/etc/systemd/system/slurmrestd.service <<EOF
+    cat >/etc/sysconfig/slurmrestd <<'EOF'
+SLURMRESTD_OPTIONS="-a rest_auth/jwt -s openapi/v0.0.37 -u slurmrestd -g slurmrestd 0.0.0.0:8082 -vvvvvvvvvv"
+SLURM_CONF=/opt/slurm/etc/slurmrestd.conf
+EOF
+
+    cat >/etc/systemd/system/slurmrestd.service <<'EOF'
 [Unit]
 Description=Slurm restd daemon
 After=network.target slurmctld.service
 ConditionPathExists=/opt/slurm/etc/slurmrestd.conf
 
 [Service]
-Environment=SLURM_CONF=/opt/slurm/etc/slurmrestd.conf
-ExecStart=/opt/slurm/sbin/slurmrestd -a rest_auth/jwt -s openapi/v0.0.37 -u slurmrestd -g slurmrestd 0.0.0.0:8082
+EnvironmentFile=/etc/sysconfig/slurmrestd
+ExecStart=/opt/slurm/sbin/slurmrestd $SLURMRESTD_OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -INT $MAINPID
 
 [Install]
 WantedBy=multi-user.target
@@ -135,7 +142,12 @@ EOF
 }
 
 function create_slurmdb_service() {
-    cat >/etc/systemd/system/slurmdbd.service <<EOF
+    cat >/etc/sysconfig/slurmdbd <<'EOF'
+SLURMDBD_OPTIONS="-D -vvvvvvvvvv"
+SLURM_CONF=/opt/slurm/etc/slurmdbd.conf
+EOF
+
+    cat >/etc/systemd/system/slurmdbd.service <<'EOF'
 [Unit]
 Description=Slurm database daemon
 After=network.target
@@ -143,12 +155,21 @@ Before=slurmctld.service
 ConditionPathExists=/opt/slurm/etc/slurmdbd.conf
 
 [Service]
-Environment=SLURM_CONF=/opt/slurm/etc/slurmdbd.conf
-ExecStart=/opt/slurm/sbin/slurmdbd -D
+EnvironmentFile=/etc/sysconfig/slurmdbd
+ExecStart=/opt/slurm/sbin/slurmdbd
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -INT $MAINPID
 
 [Install]
 WantedBy=multi-user.target
 EOF
+}
+
+function modify_slurmctld_service() {
+    cat >/etc/sysconfig/slurmctld <<EOF
+SLURMCTLD_OPTIONS="-vvvvvvvvvv"
+EOF
+
 }
 
 function head_node_action() {
@@ -170,6 +191,8 @@ function head_node_action() {
     create_slurmrest_service
 
     create_slurmdb_service
+
+    modify_slurmctld_service
 
     systemctl daemon-reload
     systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
