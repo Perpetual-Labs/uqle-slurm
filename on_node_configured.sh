@@ -125,7 +125,6 @@ function create_slurmrest_service() {
 [Unit]
 Description=Slurm restd daemon
 After=network.target slurmctld.service
-Requires=slurmctld.service
 ConditionPathExists=/opt/slurm/etc/slurmrestd.conf
 
 [Service]
@@ -151,7 +150,6 @@ ExecStart=/opt/slurm/sbin/slurmdbd -D
 
 [Install]
 WantedBy=multi-user.target
-RequiredBy=slurmctld.service
 EOF
 }
 
@@ -179,10 +177,7 @@ function head_node_action() {
     systemctl daemon-reload
     systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
 
-    systemctl start slurmdbd.service
-    sudo -u slurm /opt/slurm/bin/sacctmgr -i add cluster parallelcluster
-
-    systemctl start slurmctld.service slurmrestd.service
+    systemctl start slurmdbd.service slurmctld.service slurmrestd.service
 
     chown slurm:slurm /shared
 
