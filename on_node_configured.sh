@@ -176,9 +176,6 @@ EOF
 function head_node_action() {
     echo "Running head node boot action"
 
-    systemctl disable slurmctld.service
-    systemctl stop slurmctld.service
-
     configure_users_head_node
 
     write_jwt_key_file
@@ -198,7 +195,7 @@ function head_node_action() {
     systemctl daemon-reload
     systemctl enable slurmctld.service slurmrestd.service slurmdbd.service
 
-    systemctl start slurmdbd.service slurmctld.service slurmrestd.service
+    systemctl restart slurmdbd.service slurmctld.service slurmrestd.service
 
     chown slurm:slurm /shared
 
