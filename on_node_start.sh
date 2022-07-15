@@ -8,7 +8,7 @@ set -euo pipefail
 echo "Node type: ${cfn_node_type}"
 
 function configure_yum() {
-    cat >> /etc/yum.conf <<EOF
+    cat >>/etc/yum.conf <<EOF
 assumeyes=1
 clean_requirements_on_remove=1
 EOF
@@ -21,10 +21,10 @@ function install_fuse_overlayfs() {
         mknod /dev/fuse -m 0666 c 10 229
     fi
 
-    pushd $(mktemp -d)
+    pushd "$(mktemp -d)"
     git clone --depth 1 https://github.com/containers/fuse-overlayfs.git ./overlay
     pushd ./overlay
-    buildah bud -v $PWD:/build/fuse-overlayfs -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
+    buildah bud -v "$PWD:/build/fuse-overlayfs" -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
     cp fuse-overlayfs /usr/bin/
 
 }
@@ -61,13 +61,13 @@ function install_head_node_dependencies() {
 }
 
 function create_and_save_slurmdb_password() {
-    local slurm_password_file=/root/slurmdb.password
+    local slurm_password_file="/root/slurmdb.password"
     if [[ -e "$slurm_password_file" ]]; then
         echo "Error: create_and_save_slurmdb_password() was called when a password file already exists" >&2
         return 1
     fi
 
-    echo -n $(openssl rand -hex 32) > $slurm_password_file
+    echo -n "$(openssl rand -hex 32)" >"$slurm_password_file"
 }
 
 function configure_slurm_database() {
@@ -77,7 +77,9 @@ function configure_slurm_database() {
 
     create_and_save_slurmdb_password
 
-    local slurmdbd_password="$(cat /root/slurmdb.password)"
+    local slurmdbd_password
+    slurmdbd_password="$(cat /root/slurmdb.password)"
+
     local slurmdbd_user="slurm"
     local slurmdb_name="slurm_acct_db"
 
@@ -96,7 +98,6 @@ function install_compute_node_dependencies() {
     yum_cleanup
 }
 
-
 function compute_node_action() {
     echo "Running compute node boot action"
     configure_yum
@@ -104,7 +105,6 @@ function compute_node_action() {
     # TODO overlayfs
 
 }
-
 
 function head_node_action() {
     echo "Running head node boot action"

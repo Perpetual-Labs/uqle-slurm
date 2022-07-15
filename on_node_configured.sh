@@ -8,11 +8,10 @@ set -euo pipefail
 #####
 SLURM_JWT_KEY="$1"
 # GitHub release tag for UQLE CLI tool
-CLI_TAG="$2"
+# CLI_TAG="$2"
 # GitHub OAuth token - should have read access to UQLE CLI releases, and the UQLE stack repository
-MACHINE_USER_TOKEN="$3"
-UQLE_API_HOST="$4"
-
+# MACHINE_USER_TOKEN="$3"
+# UQLE_API_HOST="$4"
 
 # global variables
 JWT_KEY_DIR=/var/spool/slurm.state
@@ -28,7 +27,7 @@ function modify_slurm_conf() {
     # add JWT auth and accounting config to slurm.conf
     # /opt/slurm is shared via nfs, so this only needs to be configured on head node
 
-    cat >> /opt/slurm/etc/slurm.conf <<EOF
+    cat >>/opt/slurm/etc/slurm.conf <<EOF
 # Enable jwt auth for Slurmrestd
 AuthAltTypes=auth/jwt
 # ACCOUNTING
@@ -38,7 +37,6 @@ AccountingStoragePort=6819
 EOF
 }
 
-
 function configure_users_common() {
     sysctl user.max_user_namespaces=15000
     usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
@@ -47,7 +45,7 @@ function configure_users_common() {
 function configure_users_head_node() {
     configure_users_common
 
-    cat << 'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
+    cat <<'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 
@@ -70,13 +68,12 @@ EOF
 
 function write_jwt_key_file() {
     # set the jwt key
-    if [ ${SLURM_JWT_KEY} ]
-    then
+    if [ "${SLURM_JWT_KEY}" ]; then
         echo "- JWT secret variable found, writing..."
 
         mkdir -p $JWT_KEY_DIR
 
-        echo -n ${SLURM_JWT_KEY} > ${JWT_KEY_FILE}
+        echo -n "${SLURM_JWT_KEY}" >${JWT_KEY_FILE}
     else
         echo "Error: JWT key not present in environment - aborting cluster deployment" >&2
         return 1
@@ -89,7 +86,7 @@ function write_jwt_key_file() {
 function create_slurmrest_conf() {
     # create the slurmrestd.conf file
     # this file can be owned by root, because the slurmrestd service is run by root
-    cat > /opt/slurm/etc/slurmrestd.conf <<EOF
+    cat >/opt/slurm/etc/slurmrestd.conf <<EOF
 include /opt/slurm/etc/slurm.conf
 AuthType=auth/jwt
 EOF
@@ -97,10 +94,10 @@ EOF
 }
 
 function create_slurmdb_conf() {
-    local slurmdbd_password=$(cat "${SLURM_PASSWORD_FILE}")
-
+    local slurmdbd_password
+    slurmdbd_password=$(cat "${SLURM_PASSWORD_FILE}")
     # create the slurmdbd.conf file
-    cat > /opt/slurm/etc/slurmdbd.conf <<EOF
+    cat >/opt/slurm/etc/slurmdbd.conf <<EOF
 AuthType=auth/munge
 DbdHost=localhost
 DebugLevel=info
@@ -121,7 +118,7 @@ EOF
 
 function create_slurmrest_service() {
 
-    cat >/etc/systemd/system/slurmrestd.service<<EOF
+    cat >/etc/systemd/system/slurmrestd.service <<EOF
 [Unit]
 Description=Slurm restd daemon
 After=network.target slurmctld.service
@@ -137,7 +134,7 @@ EOF
 }
 
 function create_slurmdb_service() {
-    cat >/etc/systemd/system/slurmdbd.service<<EOF
+    cat >/etc/systemd/system/slurmdbd.service <<EOF
 [Unit]
 Description=Slurm database daemon
 After=network.target
@@ -152,7 +149,6 @@ ExecStart=/opt/slurm/sbin/slurmdbd -D
 WantedBy=multi-user.target
 EOF
 }
-
 
 function head_node_action() {
     echo "Running head node boot action"
