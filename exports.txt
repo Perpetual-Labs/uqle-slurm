@@ -1,5 +1,0 @@
-/shared 10.0.0.0/16(rw,sync,no_root_squash)
-/home 10.0.0.0/16(rw,sync,no_root_squash)
-/opt/parallelcluster/shared 10.0.0.0/16(rw,sync,no_root_squash)
-/opt/intel 10.0.0.0/16(rw,sync,no_root_squash)
-/opt/slurm 10.0.0.0/16(rw,sync,no_root_squash)
