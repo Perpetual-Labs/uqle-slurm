@@ -60,7 +60,6 @@ function build_and_install_podman() {
         uidmap
 
     pushd "$(mktemp -d)"
-    mkdir .cache
 
     GOCACHE="$(mktemp -d)"
     export GOCACHE
