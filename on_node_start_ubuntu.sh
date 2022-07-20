@@ -5,7 +5,7 @@ set -euo pipefail
 
 . /etc/parallelcluster/cfnconfig
 
-echo "Node type: ${cfn_node_type}"
+echo "Node type: $cfn_node_type"
 
 function apt_cleanup() {
     apt-get -qy autoremove
@@ -38,7 +38,7 @@ function install_go() {
 
 function build_and_install_podman() {
 
-    apt-get -qy install buildah fuse3 btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
+    apt-get -qy install btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
 
     pushd "$(mktemp -d)"
 
@@ -53,11 +53,13 @@ function build_and_install_podman() {
 }
 
 function install_fuse_overlayfs() {
+
+    apt-get -qy install buildah fuse3
+
     pushd "$(mktemp -d)"
 
     local version_tag="v1.9"
     git clone --branch "$version_tag" --single-branch --depth 1 https://github.com/containers/fuse-overlayfs.git ./fuse-overlayfs
-
     cd fuse-overlayfs
 
     buildah bud -v "$PWD:/build/fuse-overlayfs" -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
@@ -77,7 +79,6 @@ function install_podman() {
 
     build_and_install_podman
 
-    enable_user_namespaces
 }
 
 function enable_user_namespaces() {
@@ -144,7 +145,10 @@ function install_compute_node_dependencies() {
 
 function compute_node_action() {
     echo "Running compute node boot action"
+
     install_compute_node_dependencies
+
+    enable_user_namespaces
 
 }
 
@@ -154,6 +158,8 @@ function head_node_action() {
     useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
 
     install_head_node_dependencies
+
+    enable_user_namespaces
 
     configure_slurm_database
 
