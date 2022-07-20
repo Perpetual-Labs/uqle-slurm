@@ -129,6 +129,8 @@ EnvironmentFile=/etc/sysconfig/slurmrestd
 ExecStart=/opt/slurm/sbin/slurmrestd $SLURMRESTD_OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -153,6 +155,8 @@ EnvironmentFile=/etc/sysconfig/slurmdbd
 ExecStart=/opt/slurm/sbin/slurmdbd $SLURMDBD_OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
