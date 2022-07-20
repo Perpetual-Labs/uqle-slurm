@@ -12,5 +12,5 @@ jobs:
 
       - name: Deploy
         run: |
-          aws s3 cp ./on_node_configured.sh s3://${{ secrets.S3_BUCKET }}
-          aws s3 cp ./on_node_start.sh s3://${{ secrets.S3_BUCKET }}
+          aws s3 cp ./on_node_configured_ubuntu.sh s3://${{ secrets.S3_BUCKET }}
+          aws s3 cp ./on_node_start_ubuntu.sh s3://${{ secrets.S3_BUCKET }}
