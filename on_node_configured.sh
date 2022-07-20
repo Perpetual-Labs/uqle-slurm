@@ -59,7 +59,6 @@ for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CA
     mkdir -p "$directory"
 done
 
-alias podman="podman --runroot=\$XDG_RUNTIME_DIR --root=\$XDG_DATA_HOME"
 EOF
 }
 
