@@ -8,7 +8,7 @@ set -euo pipefail
 echo "Node type: ${cfn_node_type}"
 
 function apt_cleanup() {
-    apt-get autoremove -qy
+    apt-get -qy autoremove
     apt-get -qy clean all
 }
 
@@ -38,7 +38,7 @@ function install_go() {
 
 function build_and_install_podman() {
 
-    sudo apt-get install -yq btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
+    apt-get -qy install fuse3 btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
 
     pushd "$(mktemp -d)"
 
@@ -52,9 +52,26 @@ function build_and_install_podman() {
     popd
 }
 
+function install_fuse_overlayfs() {
+    pushd "$(mktemp -d)"
+
+    local version_tag="v1.9"
+    git clone --branch "$version_tag" --single-branch --depth 1 https://github.com/containers/fuse-overlayfs.git ./fuse-overlayfs
+
+    cd fuse-overlayfs
+
+    buildah bud -v "$PWD:/build/fuse-overlayfs" -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
+
+    cp fuse-overlayfs /usr/bin/
+
+    popd
+
+}
+
 function install_podman() {
-    # dependencies
-    apt-get -qy install fuse-overlayfs slirp4netns
+    apt-get -qy install slirp4netns
+
+    install_fuse_overlayfs
 
     install_go
 
@@ -80,7 +97,7 @@ function install_head_node_dependencies() {
     apt_upgrade
 
     # mariadb
-    apt-get -q install mariadb-server
+    apt-get -qy install mariadb-server
 
     # podman
     install_podman
