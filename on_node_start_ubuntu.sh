@@ -41,13 +41,18 @@ function build_and_install_podman() {
     apt-get -qy install btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
 
     pushd "$(mktemp -d)"
+    mkdir .cache
+    export XDG_CACHE_HOME="$PWD/.cache"
 
     local version_tag="v4.1.1"
+
     git clone --branch "$version_tag" --single-branch --depth 1 https://github.com/containers/podman ./podman
 
     cd podman
     make BUILDTAGS="selinux seccomp"
     make install PREFIX=/usr
+
+    unset XDG_CACHE_HOME
 
     popd
 }
