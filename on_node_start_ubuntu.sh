@@ -150,6 +150,8 @@ function add_kubic_repos() {
 
 function install_head_node_dependencies() {
 
+    add_kubic_repos
+
     # MariaDB repository setup
     curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash
 
@@ -216,8 +218,6 @@ function head_node_action() {
     echo "Running head node boot action"
 
     useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
-
-    add_kubic_repos
 
     install_head_node_dependencies
 
