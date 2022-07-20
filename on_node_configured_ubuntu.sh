@@ -40,7 +40,7 @@ function configure_users_common() {
 function configure_users_head_node() {
     configure_users_common
 
-    cat <<'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
+    cat <<'EOF' | tee -a /home/ubuntu/.bashrc /home/slurm/.bashrc
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 

@@ -38,11 +38,32 @@ function install_go() {
 
 function build_and_install_podman() {
 
-    apt-get -qy install btrfs-progs git go-md2man iptables libassuan-dev libbtrfs-dev libc6-dev libdevmapper-dev libglib2.0-dev libgpgme-dev libgpg-error-dev libprotobuf-dev libprotobuf-c-dev libseccomp-dev libselinux1-dev libsystemd-dev pkg-config runc uidmap
+    apt-get -qy install \
+        btrfs-progs \
+        git \
+        go-md2man \
+        iptables \
+        libassuan-dev \
+        libbtrfs-dev \
+        libc6-dev \
+        libdevmapper-dev \
+        libglib2.0-dev \
+        libgpgme-dev \
+        libgpg-error-dev \
+        libprotobuf-dev \
+        libprotobuf-c-dev \
+        libseccomp-dev \
+        libselinux1-dev \
+        libsystemd-dev \
+        pkg-config \
+        runc \
+        uidmap
 
     pushd "$(mktemp -d)"
     mkdir .cache
-    export XDG_CACHE_HOME="$PWD/.cache"
+
+    GOCACHE="$(mktemp -d)"
+    export GOCACHE
 
     local version_tag="v4.1.1"
 
@@ -52,7 +73,7 @@ function build_and_install_podman() {
     make BUILDTAGS="selinux seccomp"
     make install PREFIX=/usr
 
-    unset XDG_CACHE_HOME
+    unset GOCACHE
 
     popd
 }
@@ -75,6 +96,34 @@ function install_fuse_overlayfs() {
 
 }
 
+function install_conmon() {
+    sudo apt-get -qy install \
+        gcc \
+        git \
+        libc6-dev \
+        libglib2.0-dev \
+        libseccomp-dev \
+        pkg-config \
+        make \
+        runc
+
+    pushd "$(mktemp -d)"
+
+    local version_tag="v2.1.2"
+    git clone --branch "$version_tag" --single-branch --depth 1 https://github.com/containers/conmon ./conmon
+    cd conmon
+
+    GOCACHE="$(mktemp -d)"
+    export GOCACHE
+
+    make
+    sudo make podman
+
+    unset GOCACHE
+
+    popd
+}
+
 function install_podman() {
     apt-get -qy install slirp4netns
 
@@ -84,6 +133,8 @@ function install_podman() {
 
     build_and_install_podman
 
+    install_conmon
+
 }
 
 function enable_user_namespaces() {
@@ -91,14 +142,16 @@ function enable_user_namespaces() {
     echo 'kernel.unprivileged_userns_clone=1' >/etc/sysctl.d/userns.conf
 }
 
+function add_kubic_repos() {
+    . /etc/os-release
+    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" >/etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    wget -nv "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key" -O- | apt-key add -
+}
+
 function install_head_node_dependencies() {
 
     # MariaDB repository setup
     curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash
-
-    . /etc/os-release
-    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" >/etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-    wget -nv "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key" -O- | apt-key add -
 
     apt_upgrade
 
@@ -141,6 +194,8 @@ function configure_slurm_database() {
 
 function install_compute_node_dependencies() {
 
+    add_kubic_repos
+
     apt_upgrade
 
     install_podman
@@ -161,6 +216,8 @@ function head_node_action() {
     echo "Running head node boot action"
 
     useradd --system --no-create-home -c "slurm rest daemon user" slurmrestd
+
+    add_kubic_repos
 
     install_head_node_dependencies
 
