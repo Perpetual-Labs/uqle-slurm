@@ -12,11 +12,7 @@ HeadNode:
     OnNodeConfigured:
       Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
       Args:
-        - "{{ SLURM_VERSION }}"
         - "{{ SLURM_JWT_KEY }}"
-        - "{{ UQLE_CLI_TAG }}"
-        - "{{ MACHINE_USER_TOKEN }}"
-        - "{{ UQLE_API_HOST }}"
 Scheduling:
   Scheduler: slurm
   SlurmQueues:
@@ -33,11 +29,7 @@ Scheduling:
         OnNodeConfigured:
           Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
           Args:
-            - "{{ SLURM_VERSION }}"
             - "{{ SLURM_JWT_KEY }}"
-            - "{{ UQLE_CLI_TAG }}"
-            - "{{ MACHINE_USER_TOKEN }}"
-            - "{{ UQLE_API_HOST }}"
 SharedStorage:
   - MountDir: /shared
     Name: shared

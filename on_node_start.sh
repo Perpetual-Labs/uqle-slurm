@@ -14,21 +14,6 @@ clean_requirements_on_remove=1
 EOF
 }
 
-function install_fuse_overlayfs() {
-    yum -q install buildah
-
-    if [[ ! -e /dev/fuse ]]; then
-        mknod /dev/fuse -m 0666 c 10 229
-    fi
-
-    pushd "$(mktemp -d)"
-    git clone --depth 1 https://github.com/containers/fuse-overlayfs.git ./overlay
-    pushd ./overlay
-    buildah bud -v "$PWD:/build/fuse-overlayfs" -t fuse-overlayfs -f ./Containerfile.static.ubuntu .
-    cp fuse-overlayfs /usr/bin/
-
-}
-
 function yum_cleanup() {
     yum -q clean all
     rm -rf /var/cache/yum

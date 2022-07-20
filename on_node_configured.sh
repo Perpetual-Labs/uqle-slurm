@@ -7,11 +7,6 @@ set -euo pipefail
 # Script arguments
 #####
 SLURM_JWT_KEY="$1"
-# GitHub release tag for UQLE CLI tool
-# CLI_TAG="$2"
-# GitHub OAuth token - should have read access to UQLE CLI releases, and the UQLE stack repository
-# MACHINE_USER_TOKEN="$3"
-# UQLE_API_HOST="$4"
 
 # global variables
 JWT_KEY_DIR=/var/spool/slurm.state
