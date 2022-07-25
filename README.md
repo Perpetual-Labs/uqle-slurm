@@ -51,9 +51,6 @@ Allowed values for EC2 Key Pair Name:
 Allowed values for Scheduler:
     slurm
 
-Allowed values for Operating System:
-    alinux2
-
 Automate VPC creation? (y/n) [n]:
     y
 

@@ -1,6 +1,6 @@
 Region: {{ AWS_REGION }}
 Image:
-  Os: alinux2
+  Os: ubuntu2004
 HeadNode:
   InstanceType: t2.xlarge
   Networking:
