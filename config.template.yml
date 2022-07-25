@@ -33,7 +33,7 @@ Scheduling:
 SharedStorage:
   - MountDir: /shared
     Name: shared
-    StorageType: Ebs
+    StorageType: Efs
     EbsSettings:
       VolumeType: gp2
       Size: 50
