@@ -33,15 +33,11 @@ AccountingStoragePort=6819
 EOF
 }
 
-function configure_users_common() {
+function configure_users() {
     sysctl user.max_user_namespaces=15000
     usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
-}
 
-function configure_users_head_node() {
-    configure_users_common
-
-    cat <<'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
+    cat >>/usr/share/modules/init/bash <<'EOF'
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 
@@ -58,9 +54,8 @@ unset base_xdg_dir
 for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CACHE_HOME","$XDG_CONFIG_HOME"}; do
     mkdir -p "$directory"
 done
-
-alias podman="podman --runroot=\$XDG_RUNTIME_DIR --root=\$XDG_DATA_HOME"
 EOF
+
 }
 
 function write_jwt_key_file() {
@@ -171,7 +166,7 @@ EOF
 function head_node_action() {
     echo "Running head node boot action"
 
-    configure_users_head_node
+    configure_users
 
     write_jwt_key_file
 
@@ -201,7 +196,7 @@ function compute_node_action() {
     systemctl disable slurmd.service
     systemctl stop slurmd.service
 
-    configure_users_common
+    configure_users
 
     systemctl enable slurmd.service
     systemctl start slurmd.service

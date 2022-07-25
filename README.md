@@ -356,7 +356,9 @@ The progress of the creation can be monitored from [CloudFormation](https://eu-w
 ## Connecting cluster to UQLE API
 
 - Add a security group rule to the head node instance that allows access from the public subnet to the slurmrestd port
-
+<!-- TODO
+Need to add info on adding to head node security group and hadding headnode group inbound rules
+ -->
 ## Useful References
 [ParallelCluster v3 configuration file reference](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configuration-file-v3.html)
 
