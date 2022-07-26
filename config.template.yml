@@ -9,8 +9,10 @@ HeadNode:
   Ssh:
     KeyName: {{ SSH_KEY_PAIR }}
   CustomActions:
+    OnNodeStart:
+      Script: {{ CUSTOM_BOOT_ACTION_START }}
     OnNodeConfigured:
-      Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
+      Script: {{ CUSTOM_BOOT_ACTION_CONFIGURED }}
       Args:
         - "{{ SLURM_JWT_KEY }}"
 Scheduling:
@@ -26,8 +28,10 @@ Scheduling:
         SubnetIds:
           - {{ PRIVATE_SUBNET }}
       CustomActions:
+        OnNodeStart:
+          Script: {{ CUSTOM_BOOT_ACTION_START }}
         OnNodeConfigured:
-          Script: {{ CUSTOM_BOOT_ACTION_SCRIPT }}
+          Script: {{ CUSTOM_BOOT_ACTION_CONFIGURED }}
           Args:
             - "{{ SLURM_JWT_KEY }}"
 SharedStorage:

@@ -62,14 +62,7 @@ Automate Subnet creation? (y/n) [y]:
 ```
 
 Once complete, the tool will initiate the creation of the private and public VPCs.
-You can monitor the progress on [CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home).
-
-## Create an EC2 instance within the public subnet
-A separate EC2 instance is used to spin up the UQLE API service.
-- Create the EC2 instance in the public VPC created in the steps above
-- Follow the steps given in the UQLE Stack repository to spin up services
-- Add a security group rule that allows the private subnet of the cluster access to the UQLE API port
-- Note the private IP address of the EC2 instance
+You can monitor the progress on [CloudFormation](https://console.aws.amazon.com/cloudformation/home).
 
 ## Creating the cluster configuration file
 
@@ -78,7 +71,6 @@ See [here](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configu
 
 The [chevron](https://github.com/noahmorrison/chevron) CLI tool can be used to populate
 this template with the necessary fields from a [parameter file](./config-parameters.example.json).
-
 
 First, make a copy of the config parameter example file:
 
@@ -191,17 +183,19 @@ HeadNode:
 <tr>
 <td>
 
-`CUSTOM_BOOT_ACTION_SCRIPT`
+`CUSTOM_BOOT_ACTION_START`
 
 </td>
 <td>
 
-The URI pointing to a script that will be run on the all nodes once they are booted and configured.
+The URI pointing to a script that will be run on the all nodes once they are booted but before they are configured.
+
+See [here](https://docs.aws.amazon.com/parallelcluster/latest/ug/custom-bootstrap-actions-v3.html) for more info on custom bootstrap actions.
 
 </td>
 <td>
 
-This corresponds to [this script](./custom-boot-action.sh),
+This corresponds to [this script](./on_node_start_ubuntu.sh),
 but the script must be made available publicly - either via `http` or [`S3`](https://aws.amazon.com/s3/).
 
 </td>
@@ -211,26 +205,24 @@ but the script must be made available publicly - either via `http` or [`S3`](htt
 <tr>
 <td>
 
-`SLURM_VERSION`
+`CUSTOM_BOOT_ACTION_CONFIGURED`
 
 </td>
 <td>
 
-The Slurm version that will be built and installed onto the cluster head node.
+The URI pointing to a script that will be run on the all nodes after they are booted and configured.
 
-**Note:** This is used as an argument to the boot action script.
+See [here](https://docs.aws.amazon.com/parallelcluster/latest/ug/custom-bootstrap-actions-v3.html) for more info on custom bootstrap actions.
 
 </td>
 <td>
 
-`21.08.8` - as of *05-2022*
-
-**Note:** The nodes already have slurm installed, but is rebuilt and re-installed in a
-custom action in order to enable the Slurm REST API. The cluster obtains Slurm binaries
-from an nfs-share, so rebuilding Slurm on the head node will propogate to the cluster.
+This corresponds to [this script](./on_node_configured_ubuntu.sh),
+but the script must be made available publicly - either via `http` or [`S3`](https://aws.amazon.com/s3/).
 
 </td>
 </tr>
+
 
 <!-- row -->
 <tr>
@@ -257,79 +249,6 @@ This can be generated. It should be a random sequence of 32 or more characters.
 </td>
 </tr>
 
-
-<!-- row -->
-<tr>
-<td>
-
-`MACHINE_USER_TOKEN`
-
-</td>
-<td>
-
-The [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (PAT) for a GitHub [machine user](https://docs.github.com/en/developers/overview/managing-deploy-keys#machine-users)
-
-**Note:** This is used as an argument to the custom boot script.
-
-</td>
-<td>
-
-This can be created from any user that has read access to the both the UQLE stack and UQLE CLI repositories.
-
-A user, [@uqle-machine-user](https://github.com/uqle-machine-user) has been created for this purpose.
-
-</td>
-</tr>
-
-<!-- row -->
-<tr>
-<td>
-
-`UQLE_CLI_TAG`
-
-</td>
-<td>
-
-The release tag for the UQLE CLI tool to be installed into the gitlab runner on the head node.
-
-**Note:** This is used as an argument to the custom boot script.
-
-**Note:** The head node clones the UQLE stack repository, and uses it to build a gitlab runner. The `MACHINE_USER_TOKEN` is used in this process to clone the repository, and access the UQLE CLI binaries.
-
-</td>
-<td>
-
-[github.com/Perpetual-Labs/uqle-cli/releases](https://github.com/Perpetual-Labs/uqle-cli/releases)
-
-
-</td>
-</tr>
-
-<!-- row -->
-<tr>
-<td>
-
-`UQLE_API_HOST`
-
-</td>
-<td>
-
-The private IP of the EC2 instance created above for the UQLE API.
-
-**Note:** This is used as an argument to the custom boot script.
-
-**Note:** The host should include protocol and port
-- *e.g.* `http://<private-ip>:2323`
-
-</td>
-<td>
-
-You can view the private IP address of an EC2 instance from the [EC2 Dashboard](https://eu-west-2.console.aws.amazon.com/ec2/v2/home)
-
-
-</td>
-</tr>
-
 </table>
 
 Once all parameter values are filled, run the following.
@@ -350,12 +269,96 @@ pcluster create-cluster --cluster-configuration ./config.yml --cluster-name <clu
 
 The progress of the creation can be monitored from [CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home).
 
-## Connecting cluster to UQLE API
+## Connecting the cluster to the UQLE API
+To complete the stack, a new EC2 instance must be created.
+This will host the UQLE API service and the GitLab runner service.
 
-- Add a security group rule to the head node instance that allows access from the public subnet to the slurmrestd port
-<!-- TODO
-Need to add info on adding to head node security group and hadding headnode group inbound rules
- -->
+The Gitlab runner service will need access to the shared EFS filesystem of the cluster, to extract artifacts.
+The UQLE API service will need access the the Slurm REST API port on the Head Node of the cluster.
+
+To achieve this, the following steps must be followed:
+- Create an inbound rule on the cluster's Head Node Security Group (HNSG)
+- Create the EC2 instance, attaching it to the HNSG and the EFS filesystem
+
+See below for details on these steps.
+
+### Modify Head Node Security Group
+When the cluster is created by the `pcluster create-cluster` command,
+2 security groups are created in the VPCs created by the `pcluster configure` command.
+These security groups correspond to the head node, and the compute nodes.
+
+By default, the HNSG allows all inbound traffic from the Compute Node Security group (CNSG).
+We need to modify the HNSG to allow all inbound traffic from the HNSG.
+This is because the EC2 instance will be added to the HNSG, and must be able to access the Slurm REST API port on the head node.
+
+See the documentation on adding security group rules [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-security-groups.html#adding-security-group-rule)
+
+The HNSG name has the format `pcluster-ubuntu-HeadNodeSecurityGroup-<id>`, where `<id>` is a random string of alphanumeric characters.
+
+The screenshot below shows what the HNSG inbound rules should look like after modification.
+
+![Security group modification page](./screenshots/security_group_modification.png "Security group modification page")
+
+**Note:** The the security group ID being allowed access is the ID of this security group,
+thus allowing all members of this security group to receive traffic from other members.
+
+### Create the EC2 instance
+
+The next step is to create the new EC2 instance. To do so, you can use the [EC2 launch wizard](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html#liw-quickly-launch-instance).
+
+See the guide given [here](https://docs.aws.amazon.com/efs/latest/ug/mount-fs-auto-mount-onreboot.html#mount-fs-auto-mount-on-creation) for a walkthrough on creating an EC2 instance which automounts an EFS filesystem.
+You can skip the the security group configuration details in this guide.
+For the UQLE API instance, the VPC, subnet and filesystem configuration deviates from this guide.
+Those details are given below, with screenshots.
+
+#### EC2 launch wizard settings
+
+- Generally, any Linux-OS AMI should be appropriate.
+- For the instance type, `t2.large` is a recommended minimum.
+- Ensure you configure an accessible SSH key when creating the instance.
+
+See the screenshot below for an example of the network settings that should be applied.
+
+![EC2 wizard network settings](./screenshots/ec2_network_settings.png "EC2 wizard network settings")
+
+Note that:
+- The instance is within the same VPC as the cluster.
+  - The VPC name will have the format `ParallelClusterVPC-<timestamp>`,
+  where `<timestamp>` is the UTC timestamp of the VPC's creation.
+- The instance is in the public subnet
+- The instance is a member of the HNSG
+
+This configuration will allow SSH access to the machine and, because of the HNSG modifications above,
+the machine will have access to the Head Node of the Slurm Cluster.
+
+See the screenshot below for an example of the filesystem settings that should be applied.
+
+![EC2 wizard filesystem settings](./screenshots/ec2_filesystem_settings.png "EC2 wizard filesystem settings")
+
+Note that:
+- The filesystem ID corresponds to the EFS volume created by the `pcluster create-cluster` command
+- *Automatically create and attach security groups* is unticked
+  - The security groups already configured for the instance are sufficient to access the shared volume
+- *Automatically mount shared file system by attaching required user data script* is ticked
+  - This means no manual configuration is needed to make the Slurm cluster's shared volume accessible
+- The mount point for the filesystem on the instance must be specified
+  - This can be directory, but should be noted for later configuration
+
+All other configuration options can be left at defaults or modified as needed.
+
+### Configure EC2 instance
+
+To spin up the UQLE API service and the GitLab runner service, install docker and docker-compose on the instance and follow the documentation given in the [UQLE repo](https://github.com/Perpetual-Labs/uqle).
+
+Details to note:
+- The `Private IP DNS name` of the Head Node
+  - This is used as the *Slurm URL* by the UQLE API
+- The Slurm REST API port is `8082`
+- The SLURM JWT key
+  - This is used to spin up the UQLE API service
+- The mount point of the shared volume
+  - This mount point will be bind-mounted into the GitLab runner Docker container
+
 ## Useful References
 [ParallelCluster v3 configuration file reference](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configuration-file-v3.html)
 
