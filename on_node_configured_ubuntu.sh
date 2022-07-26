@@ -63,7 +63,7 @@ EOF
 
 function write_jwt_key_file() {
     # set the jwt key
-    if [ "$SLURM_JWT_KEY" ]; then
+    if [[ -z "$SLURM_JWT_KEY" ]]; then
         echo "- JWT secret variable found, writing..."
 
         mkdir -p "$JWT_KEY_DIR"
