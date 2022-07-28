@@ -342,7 +342,7 @@ Note that:
 - *Automatically mount shared file system by attaching required user data script* is ticked
   - This means no manual configuration is needed to make the Slurm cluster's shared volume accessible
 - The mount point for the filesystem on the instance must be specified
-  - This can be directory, but should be noted for later configuration
+  - This can be any directory, but should be noted for later configuration
 
 All other configuration options can be left at defaults or modified as needed.
 
