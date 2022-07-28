@@ -7,11 +7,6 @@ set -euo pipefail
 # Script arguments
 #####
 SLURM_JWT_KEY="$1"
-# GitHub release tag for UQLE CLI tool
-# CLI_TAG="$2"
-# GitHub OAuth token - should have read access to UQLE CLI releases, and the UQLE stack repository
-# MACHINE_USER_TOKEN="$3"
-# UQLE_API_HOST="$4"
 
 # global variables
 JWT_KEY_DIR=/var/spool/slurm.state
@@ -39,14 +34,13 @@ EOF
 }
 
 function configure_users_common() {
-    sysctl user.max_user_namespaces=15000
     usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
 }
 
 function configure_users_head_node() {
     configure_users_common
 
-    cat <<'EOF' | tee -a /home/centos/.bashrc /home/slurm/.bashrc
+    cat <<'EOF' | tee -a /home/ubuntu/.bashrc /home/slurm/.bashrc
 # Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
 # See basedir-spec at https://specifications.freedesktop.org/
 
@@ -64,13 +58,12 @@ for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CA
     mkdir -p "$directory"
 done
 
-alias podman="podman --runroot=\$XDG_RUNTIME_DIR --root=\$XDG_DATA_HOME"
 EOF
 }
 
 function write_jwt_key_file() {
     # set the jwt key
-    if [ "$SLURM_JWT_KEY" ]; then
+    if [[ -z "$SLURM_JWT_KEY" ]]; then
         echo "- JWT secret variable found, writing..."
 
         mkdir -p "$JWT_KEY_DIR"
@@ -136,6 +129,8 @@ EnvironmentFile=/etc/sysconfig/slurmrestd
 ExecStart=/opt/slurm/sbin/slurmrestd $SLURMRESTD_OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -160,6 +155,8 @@ EnvironmentFile=/etc/sysconfig/slurmdbd
 ExecStart=/opt/slurm/sbin/slurmdbd $SLURMDBD_OPTIONS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -175,6 +172,8 @@ EOF
 
 function head_node_action() {
     echo "Running head node boot action"
+
+    mkdir -p /etc/sysconfig
 
     configure_users_head_node
 
@@ -203,13 +202,10 @@ function head_node_action() {
 
 function compute_node_action() {
     echo "Running compute node boot action"
-    systemctl disable slurmd.service
-    systemctl stop slurmd.service
 
     configure_users_common
 
-    systemctl enable slurmd.service
-    systemctl start slurmd.service
+    systemctl restart slurmd.service
 }
 
 if [[ "$cfn_node_type" == "HeadNode" ]]; then
