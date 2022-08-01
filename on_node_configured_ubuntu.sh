@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425#file-bash_strict_mode-md
-set -euo pipefail
+set -exuo pipefail
 
 #####
 # Script arguments
@@ -40,16 +40,15 @@ function configure_users() {
 function write_jwt_key_file() {
     # set the jwt key
     if [[ -z "$SLURM_JWT_KEY" ]]; then
-        echo "- JWT secret variable found, writing..."
-
-        mkdir -p "$JWT_KEY_DIR"
-
-        echo -n "$SLURM_JWT_KEY" >"$JWT_KEY_FILE"
-    else
-        echo "Error: JWT key not present in environment - aborting cluster deployment" >&2
+        echo "Error: JWT key not present in environment" >&2
         return 1
     fi
 
+    echo "- JWT secret variable found, writing..."
+
+    mkdir -p "$JWT_KEY_DIR"
+
+    echo -n "$SLURM_JWT_KEY" >"$JWT_KEY_FILE"
     chown slurm:slurm "$JWT_KEY_FILE"
     chmod 0600 "$JWT_KEY_FILE"
 }
