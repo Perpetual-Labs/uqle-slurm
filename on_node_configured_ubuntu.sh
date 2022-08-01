@@ -33,32 +33,8 @@ AccountingStoragePort=6819
 EOF
 }
 
-function configure_users_common() {
+function configure_users() {
     usermod --add-subuids 165536-231071 --add-subgids 165536-231071 slurm
-}
-
-function configure_users_head_node() {
-    configure_users_common
-
-    cat <<'EOF' | tee -a /home/ubuntu/.bashrc /home/slurm/.bashrc
-# Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
-# See basedir-spec at https://specifications.freedesktop.org/
-
-base_xdg_dir=$(mktemp -qd /tmp/"$(id -u)"-xdg-XXXXXXXXXX)
-
-export XDG_RUNTIME_DIR="$base_xdg_dir"/.runtime
-export XDG_DATA_HOME="$base_xdg_dir"/.data
-export XDG_STATE_HOME="$base_xdg_dir"/.state
-export XDG_CACHE_HOME="$base_xdg_dir"/.cache
-export XDG_CONFIG_HOME="$base_xdg_dir"/.config
-
-unset base_xdg_dir
-
-for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CACHE_HOME","$XDG_CONFIG_HOME"}; do
-    mkdir -p "$directory"
-done
-
-EOF
 }
 
 function write_jwt_key_file() {
@@ -175,7 +151,7 @@ function head_node_action() {
 
     mkdir -p /etc/sysconfig
 
-    configure_users_head_node
+    configure_users
 
     write_jwt_key_file
 
@@ -203,7 +179,7 @@ function head_node_action() {
 function compute_node_action() {
     echo "Running compute node boot action"
 
-    configure_users_common
+    configure_users
 
     systemctl restart slurmd.service
 }

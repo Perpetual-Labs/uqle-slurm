@@ -204,12 +204,37 @@ function install_compute_node_dependencies() {
     apt_cleanup
 }
 
+function configure_xdg_dirs() {
+    cat <<'EOF' | tee -a /usr/share/modules/init/bash
+
+# Set variables to avoid podman conflicts between nodes due to nfs-sharing of /home
+# See basedir-spec at https://specifications.freedesktop.org/
+
+base_xdg_dir=$(mktemp -qd /tmp/"$(id -u)"-xdg-XXXXXXXXXX)
+
+export XDG_RUNTIME_DIR="$base_xdg_dir"/.runtime
+export XDG_DATA_HOME="$base_xdg_dir"/.data
+export XDG_STATE_HOME="$base_xdg_dir"/.state
+export XDG_CACHE_HOME="$base_xdg_dir"/.cache
+export XDG_CONFIG_HOME="$base_xdg_dir"/.config
+
+unset base_xdg_dir
+
+for directory in {"$XDG_RUNTIME_DIR","$XDG_DATA_HOME","$XDG_STATE_HOME","$XDG_CACHE_HOME","$XDG_CONFIG_HOME"}; do
+    mkdir -p "$directory"
+done
+
+EOF
+}
+
 function compute_node_action() {
     echo "Running compute node boot action"
 
     install_compute_node_dependencies
 
     enable_user_namespaces
+
+    configure_xdg_dirs
 
 }
 
@@ -221,6 +246,8 @@ function head_node_action() {
     install_head_node_dependencies
 
     enable_user_namespaces
+
+    configure_xdg_dirs
 
     configure_slurm_database
 
