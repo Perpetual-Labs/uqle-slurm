@@ -8,6 +8,7 @@ python-versions = ">=3.6.2"
 
 [package.dependencies]
 lazy-object-proxy = ">=1.4.0"
+setuptools = ">=20.0"
 wrapt = ">=1.11,<2"
 
 [[package]]
@@ -27,10 +28,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
+dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "sphinx", "sphinx-notfound-page", "zope.interface"]
+docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
+tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "zope.interface"]
+tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
 
 [[package]]
 name = "aws-cdk.assets"
@@ -1005,11 +1006,11 @@ publication = ">=0.0.3"
 
 [[package]]
 name = "aws-parallelcluster"
-version = "3.1.4"
+version = "3.2.1"
 description = "AWS ParallelCluster is an AWS supported Open Source cluster management tool to deploy and manage HPC clusters in the AWS cloud."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 "aws-cdk.aws-batch" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
@@ -1030,14 +1031,15 @@ python-versions = ">=3.6"
 "aws-cdk.aws-ssm" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
 "aws-cdk.core" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
 boto3 = ">=1.16.14"
-connexion = "2.10.0"
-flask = ">=2.0.0,<2.1.0"
+connexion = ">=2.13.0,<2.14.0"
+flask = ">=2.0,<3.0"
 jinja2 = ">=3.0,<4.0"
 jmespath = ">=0.10,<1.0"
 marshmallow = ">=3.10,<4.0"
 PyYAML = ">=5.3,<6.0"
+setuptools = "*"
 tabulate = ">=0.8,<1.0"
-werkzeug = ">=2.0.0,<2.1.0"
+werkzeug = ">=2.0,<3.0"
 
 [package.extras]
 awslambda = ["aws-lambda-powertools (>=1.14,<2.0)"]
@@ -1167,7 +1169,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "connexion"
-version = "2.10.0"
+version = "2.13.1"
 description = "Connexion - API first applications with OpenAPI/Swagger and Flask"
 category = "main"
 optional = false
@@ -1177,18 +1179,19 @@ python-versions = ">=3.6"
 clickclick = ">=1.2,<21"
 flask = ">=1.0.4,<3"
 inflection = ">=0.3.1,<0.6"
-jsonschema = ">=2.5.1,<4"
-openapi-spec-validator = ">=0.2.4,<0.4"
-PyYAML = ">=5.1,<6"
+itsdangerous = ">=0.24"
+jsonschema = ">=2.5.1,<5"
+packaging = ">=20"
+PyYAML = ">=5.1,<7"
 requests = ">=2.9.1,<3"
 werkzeug = ">=1.0,<3"
 
 [package.extras]
-aiohttp = ["aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)"]
+aiohttp = ["MarkupSafe (>=0.23)", "aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)"]
 docs = ["sphinx-autoapi (==1.8.1)"]
-flask = ["flask (>=1.0.4,<3)"]
+flask = ["flask (>=1.0.4,<3)", "itsdangerous (>=0.24)"]
 swagger-ui = ["swagger-ui-bundle (>=0.0.2,<0.1)"]
-tests = ["decorator (>=5,<6)", "pytest (>=6,<7)", "pytest-cov (>=2,<3)", "testfixtures (>=6,<7)", "flask (>=1.0.4,<3)", "swagger-ui-bundle (>=0.0.2,<0.1)", "aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)", "pytest-aiohttp", "aiohttp-remotes"]
+tests = ["MarkupSafe (>=0.23)", "aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)", "aiohttp-remotes", "decorator (>=5,<6)", "flask (>=1.0.4,<3)", "itsdangerous (>=0.24)", "pytest (>=6,<7)", "pytest-aiohttp", "pytest-cov (>=2,<3)", "swagger-ui-bundle (>=0.0.2,<0.1)", "testfixtures (>=6,<7)"]
 
 [[package]]
 name = "constructs"
@@ -1280,17 +1283,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "isodate"
-version = "0.6.1"
-description = "An ISO 8601 date/time/duration parser and formatter"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = "*"
-
-[[package]]
 name = "isort"
 version = "5.10.1"
 description = "A Python utility / library to sort Python imports."
@@ -1299,10 +1291,10 @@ optional = false
 python-versions = ">=3.6.1,<4.0"
 
 [package.extras]
-pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
-requirements_deprecated_finder = ["pipreqs", "pip-api"]
 colors = ["colorama (>=0.4.3,<0.5.0)"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
 plugins = ["setuptools"]
+requirements_deprecated_finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "itsdangerous"
@@ -1359,11 +1351,12 @@ python-versions = "*"
 [package.dependencies]
 attrs = ">=17.4.0"
 pyrsistent = ">=0.14.0"
+setuptools = "*"
 six = ">=1.11.0"
 
 [package.extras]
 format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors"]
-format_nongpl = ["idna", "jsonpointer (>1.13)", "webcolors", "rfc3986-validator (>0.1.0)", "rfc3339-validator"]
+format_nongpl = ["idna", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "webcolors"]
 
 [[package]]
 name = "lazy-object-proxy"
@@ -1393,9 +1386,9 @@ python-versions = ">=3.7"
 packaging = "*"
 
 [package.extras]
-dev = ["pytest", "pytz", "simplejson", "mypy (==0.940)", "flake8 (==4.0.1)", "flake8-bugbear (==22.1.11)", "pre-commit (>=2.4,<3.0)", "tox"]
-docs = ["sphinx (==4.4.0)", "sphinx-issues (==3.0.1)", "alabaster (==0.7.12)", "sphinx-version-warning (==1.1.2)", "autodocsumm (==0.2.7)"]
-lint = ["mypy (==0.940)", "flake8 (==4.0.1)", "flake8-bugbear (==22.1.11)", "pre-commit (>=2.4,<3.0)"]
+dev = ["flake8 (==4.0.1)", "flake8-bugbear (==22.1.11)", "mypy (==0.940)", "pre-commit (>=2.4,<3.0)", "pytest", "pytz", "simplejson", "tox"]
+docs = ["alabaster (==0.7.12)", "autodocsumm (==0.2.7)", "sphinx (==4.4.0)", "sphinx-issues (==3.0.1)", "sphinx-version-warning (==1.1.2)"]
+lint = ["flake8 (==4.0.1)", "flake8-bugbear (==22.1.11)", "mypy (==0.940)", "pre-commit (>=2.4,<3.0)"]
 tests = ["pytest", "pytz", "simplejson"]
 
 [[package]]
@@ -1433,42 +1426,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "openapi-schema-validator"
-version = "0.1.6"
-description = "OpenAPI schema validation for Python"
-category = "main"
-optional = false
-python-versions = ">= 2.7, != 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*"
-
-[package.dependencies]
-isodate = "*"
-jsonschema = ">=3.0.0"
-six = "*"
-
-[package.extras]
-strict_rfc3339 = ["strict-rfc3339"]
-rfc3339_validator = ["rfc3339-validator"]
-isodate = ["isodate"]
-
-[[package]]
-name = "openapi-spec-validator"
-version = "0.3.3"
-description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3.0 spec validator"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.dependencies]
-jsonschema = ">=3.2.0,<4.0.0"
-openapi-schema-validator = "<0.2.0"
-pyrsistent = "<0.17.0"
-PyYAML = ">=5.1"
-six = "*"
-
-[package.extras]
-requests = ["requests"]
-
-[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -1496,8 +1453,8 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx-autodoc-typehints (>=1.12)", "sphinx (>=4)"]
-test = ["appdirs (==1.4.4)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)", "pytest (>=6)"]
+docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx (>=4)", "sphinx-autodoc-typehints (>=1.12)"]
+test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)"]
 
 [[package]]
 name = "pluggy"
@@ -1508,8 +1465,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-testing = ["pytest-benchmark", "pytest"]
-dev = ["tox", "pre-commit"]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "publication"
@@ -1574,7 +1531,7 @@ optional = false
 python-versions = ">=3.6.8"
 
 [package.extras]
-diagrams = ["railroad-diagrams", "jinja2"]
+diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pyrsistent"
@@ -1660,6 +1617,19 @@ botocore = ">=1.12.36,<2.0a.0"
 crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
+name = "setuptools"
+version = "65.4.1"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mock", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1711,8 +1681,8 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
-brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+brotli = ["brotli (>=1.0.9)", "brotlicffi (>=0.8.0)", "brotlipy (>=0.6.0)"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "pyOpenSSL (>=0.14)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
@@ -1737,7 +1707,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "a8d92a9c82c820c45b500195a9d6d78d942607577648681fbd1de72c9a3dd1a5"
+content-hash = "27a65562d7770b750c0807cd1602d6f90e6e2fe132183ed588cf57fc2e1257c4"
 
 [metadata.files]
 astroid = [
@@ -1961,8 +1931,8 @@ attrs = [
     {file = "aws_cdk.region_info-1.156.1-py3-none-any.whl", hash = "sha256:2f9a493eb1090a3c1bd67f61ab9d792d0abbc8dd9301597dd5422112c4de3ec0"},
 ]
 aws-parallelcluster = [
-    {file = "aws-parallelcluster-3.1.4.tar.gz", hash = "sha256:f1a95b469b6e0675554e967a1d76170cb3cc4d91ac810e1718070d4686bdc095"},
-    {file = "aws_parallelcluster-3.1.4-py3-none-any.whl", hash = "sha256:455407ca55f603c936ab56284dd0cb6236a733ce3ca9507fa9c1a029d11c2950"},
+    {file = "aws-parallelcluster-3.2.1.tar.gz", hash = "sha256:7ad2d4cde5aae7edd5f89c3cfad337b2be450720394d22ad085ce3c64b3f412f"},
+    {file = "aws_parallelcluster-3.2.1-py3-none-any.whl", hash = "sha256:b89f5566bf61c3645cf58c27a08199cdae89d283e32ebc51df3ba8009d55fb32"},
 ]
 black = [
     {file = "black-22.6.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f586c26118bc6e714ec58c09df0157fe2d9ee195c764f630eb0d8e7ccce72e69"},
@@ -2026,8 +1996,8 @@ colorama = [
     {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
 connexion = [
-    {file = "connexion-2.10.0-py2.py3-none-any.whl", hash = "sha256:b10df8b67dde1b9d61ff0676f354d02ab838bed9818eb89d582504b3a3acbd71"},
-    {file = "connexion-2.10.0.tar.gz", hash = "sha256:de0cab04ff548e392ba206228ded9d46620765a4b27f0d0c8ab3999ad20b53dc"},
+    {file = "connexion-2.13.1-py2.py3-none-any.whl", hash = "sha256:fb9a8c7a60fdecac45c913c1373948b28d8a55328472e08b5132fba36da36524"},
+    {file = "connexion-2.13.1.tar.gz", hash = "sha256:80b534800b408d184fe6d36e755edefdd657e8f11756b5806d6bcf7213380d0d"},
 ]
 constructs = [
     {file = "constructs-3.4.9-py3-none-any.whl", hash = "sha256:56edf5bfe4800740544102d42e7364ab7dc35f592e3d51a16c884c343a84012e"},
@@ -2060,10 +2030,6 @@ inflection = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
-]
-isodate = [
-    {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
-    {file = "isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9"},
 ]
 isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
@@ -2207,15 +2173,6 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
-openapi-schema-validator = [
-    {file = "openapi-schema-validator-0.1.6.tar.gz", hash = "sha256:230db361c71a5b08b25ec926797ac8b59a8f499bbd7316bd15b6cd0fc9aea5df"},
-    {file = "openapi_schema_validator-0.1.6-py2-none-any.whl", hash = "sha256:8ef097b78c191c89d9a12cdf3d311b2ecf9d3b80bbe8610dbc67a812205a6a8d"},
-    {file = "openapi_schema_validator-0.1.6-py3-none-any.whl", hash = "sha256:af023ae0d16372cf8dd0d128c9f3eaa080dc3cd5dfc69e6a247579f25bd10503"},
-]
-openapi-spec-validator = [
-    {file = "openapi-spec-validator-0.3.3.tar.gz", hash = "sha256:43d606c5910ed66e1641807993bd0a981de2fc5da44f03e1c4ca2bb65b94b68e"},
-    {file = "openapi_spec_validator-0.3.3-py2.py3-none-any.whl", hash = "sha256:49d7da81996714445116f6105c9c5955c0e197ef8636da4f368c913f64753443"},
-]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
@@ -2305,6 +2262,10 @@ requests = [
 s3transfer = [
     {file = "s3transfer-0.5.2-py3-none-any.whl", hash = "sha256:7a6f4c4d1fdb9a2b640244008e142cbc2cd3ae34b386584ef044dd0f27101971"},
     {file = "s3transfer-0.5.2.tar.gz", hash = "sha256:95c58c194ce657a5f4fb0b9e60a84968c808888aed628cd98ab8771fe1db98ed"},
+]
+setuptools = [
+    {file = "setuptools-65.4.1-py3-none-any.whl", hash = "sha256:1b6bdc6161661409c5f21508763dc63ab20a9ac2f8ba20029aaaa7fdb9118012"},
+    {file = "setuptools-65.4.1.tar.gz", hash = "sha256:3050e338e5871e70c72983072fe34f6032ae1cdeeeb67338199c2f74e083a80e"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

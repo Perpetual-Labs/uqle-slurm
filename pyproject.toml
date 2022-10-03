@@ -16,7 +16,7 @@ configure-aws-parallelcluster = "configure_aws_parallelcluster.__main__:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aws-parallelcluster = "^3.1.4"
+aws-parallelcluster = "^3.2.1"
 chevron = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
