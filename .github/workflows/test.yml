@@ -17,7 +17,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install Poetry
-        uses: snok/install-poetry@2bf112a0f6979928eb6b011f39700db589c5961e
+        uses: snok/install-poetry@e3dbfd357f4751d4f582d62bc8a71e56c2a7015b
 
       - name: Get poetry cache dir
         id: poetry-cache
