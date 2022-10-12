@@ -359,6 +359,19 @@ Details to note:
 - The mount point of the shared volume
   - This mount point will be bind-mounted into the GitLab runner Docker container
 
+
+## Debugging
+### SSH Access
+
+You can access the Head Node of the Slurm cluster using the SSH key it has been created with.
+To do so, you will need to public IP address of the Head Node and have the private key pair saved locally.
+
+Alternatively, you can use the `pcluster ssh` command, in which case you only need the key pair and the cluster name:
+
+```shell
+pcluster ssh --cluster-name pcluster-ubuntu -i ~/.ssh/key-pair.pem
+```
+
 ## Useful References
 [ParallelCluster v3 configuration file reference](https://docs.aws.amazon.com/parallelcluster/latest/ug/cluster-configuration-file-v3.html)
 

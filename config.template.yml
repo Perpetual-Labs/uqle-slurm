@@ -22,7 +22,7 @@ Scheduling:
       ComputeResources:
         - Name: t2large
           InstanceType: t2.large
-          MinCount: 1
+          MinCount: 0
           MaxCount: 2
       Networking:
         SubnetIds:
@@ -38,9 +38,6 @@ SharedStorage:
   - MountDir: /shared
     Name: shared
     StorageType: Efs
-    EbsSettings:
-      VolumeType: gp2
-      Size: 50
 Monitoring:
   DetailedMonitoring: true
   Logs:

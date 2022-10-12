@@ -1005,11 +1005,11 @@ publication = ">=0.0.3"
 
 [[package]]
 name = "aws-parallelcluster"
-version = "3.1.4"
+version = "3.2.1"
 description = "AWS ParallelCluster is an AWS supported Open Source cluster management tool to deploy and manage HPC clusters in the AWS cloud."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 "aws-cdk.aws-batch" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
@@ -1030,14 +1030,14 @@ python-versions = ">=3.6"
 "aws-cdk.aws-ssm" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
 "aws-cdk.core" = ">=1.137,<1.153.0 || >1.153.0,<2.0"
 boto3 = ">=1.16.14"
-connexion = "2.10.0"
-flask = ">=2.0.0,<2.1.0"
+connexion = ">=2.13.0,<2.14.0"
+flask = ">=2.0,<3.0"
 jinja2 = ">=3.0,<4.0"
 jmespath = ">=0.10,<1.0"
 marshmallow = ">=3.10,<4.0"
 PyYAML = ">=5.3,<6.0"
 tabulate = ">=0.8,<1.0"
-werkzeug = ">=2.0.0,<2.1.0"
+werkzeug = ">=2.0,<3.0"
 
 [package.extras]
 awslambda = ["aws-lambda-powertools (>=1.14,<2.0)"]
@@ -1167,7 +1167,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "connexion"
-version = "2.10.0"
+version = "2.13.1"
 description = "Connexion - API first applications with OpenAPI/Swagger and Flask"
 category = "main"
 optional = false
@@ -1177,18 +1177,19 @@ python-versions = ">=3.6"
 clickclick = ">=1.2,<21"
 flask = ">=1.0.4,<3"
 inflection = ">=0.3.1,<0.6"
-jsonschema = ">=2.5.1,<4"
-openapi-spec-validator = ">=0.2.4,<0.4"
-PyYAML = ">=5.1,<6"
+itsdangerous = ">=0.24"
+jsonschema = ">=2.5.1,<5"
+packaging = ">=20"
+PyYAML = ">=5.1,<7"
 requests = ">=2.9.1,<3"
 werkzeug = ">=1.0,<3"
 
 [package.extras]
-aiohttp = ["aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)"]
+aiohttp = ["aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)", "MarkupSafe (>=0.23)"]
 docs = ["sphinx-autoapi (==1.8.1)"]
-flask = ["flask (>=1.0.4,<3)"]
+flask = ["flask (>=1.0.4,<3)", "itsdangerous (>=0.24)"]
 swagger-ui = ["swagger-ui-bundle (>=0.0.2,<0.1)"]
-tests = ["decorator (>=5,<6)", "pytest (>=6,<7)", "pytest-cov (>=2,<3)", "testfixtures (>=6,<7)", "flask (>=1.0.4,<3)", "swagger-ui-bundle (>=0.0.2,<0.1)", "aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)", "pytest-aiohttp", "aiohttp-remotes"]
+tests = ["decorator (>=5,<6)", "pytest (>=6,<7)", "pytest-cov (>=2,<3)", "testfixtures (>=6,<7)", "flask (>=1.0.4,<3)", "itsdangerous (>=0.24)", "swagger-ui-bundle (>=0.0.2,<0.1)", "aiohttp (>=2.3.10,<4)", "aiohttp-jinja2 (>=0.14.0,<2)", "MarkupSafe (>=0.23)", "pytest-aiohttp", "aiohttp-remotes"]
 
 [[package]]
 name = "constructs"
@@ -1215,7 +1216,7 @@ graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
 name = "exceptiongroup"
-version = "1.0.0rc5"
+version = "1.0.0rc9"
 description = "Backport of PEP 654 (exception groups)"
 category = "main"
 optional = false
@@ -1278,17 +1279,6 @@ description = "iniconfig: brain-dead simple config-ini parsing"
 category = "dev"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "isodate"
-version = "0.6.1"
-description = "An ISO 8601 date/time/duration parser and formatter"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = "*"
 
 [[package]]
 name = "isort"
@@ -1433,42 +1423,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "openapi-schema-validator"
-version = "0.1.6"
-description = "OpenAPI schema validation for Python"
-category = "main"
-optional = false
-python-versions = ">= 2.7, != 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*"
-
-[package.dependencies]
-isodate = "*"
-jsonschema = ">=3.0.0"
-six = "*"
-
-[package.extras]
-strict_rfc3339 = ["strict-rfc3339"]
-rfc3339_validator = ["rfc3339-validator"]
-isodate = ["isodate"]
-
-[[package]]
-name = "openapi-spec-validator"
-version = "0.3.3"
-description = "OpenAPI 2.0 (aka Swagger) and OpenAPI 3.0 spec validator"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.dependencies]
-jsonschema = ">=3.2.0,<4.0.0"
-openapi-schema-validator = "<0.2.0"
-pyrsistent = "<0.17.0"
-PyYAML = ">=5.1"
-six = "*"
-
-[package.extras]
-requests = ["requests"]
-
-[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -1508,8 +1462,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-testing = ["pytest-benchmark", "pytest"]
-dev = ["tox", "pre-commit"]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "publication"
@@ -1737,7 +1691,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "a8d92a9c82c820c45b500195a9d6d78d942607577648681fbd1de72c9a3dd1a5"
+content-hash = "efbbf26a7d3583146e1590a27dd8365ad511d62d613342c5037073aa3c2d492c"
 
 [metadata.files]
 astroid = [
@@ -1961,8 +1915,8 @@ attrs = [
     {file = "aws_cdk.region_info-1.156.1-py3-none-any.whl", hash = "sha256:2f9a493eb1090a3c1bd67f61ab9d792d0abbc8dd9301597dd5422112c4de3ec0"},
 ]
 aws-parallelcluster = [
-    {file = "aws-parallelcluster-3.1.4.tar.gz", hash = "sha256:f1a95b469b6e0675554e967a1d76170cb3cc4d91ac810e1718070d4686bdc095"},
-    {file = "aws_parallelcluster-3.1.4-py3-none-any.whl", hash = "sha256:455407ca55f603c936ab56284dd0cb6236a733ce3ca9507fa9c1a029d11c2950"},
+    {file = "aws-parallelcluster-3.2.1.tar.gz", hash = "sha256:7ad2d4cde5aae7edd5f89c3cfad337b2be450720394d22ad085ce3c64b3f412f"},
+    {file = "aws_parallelcluster-3.2.1-py3-none-any.whl", hash = "sha256:b89f5566bf61c3645cf58c27a08199cdae89d283e32ebc51df3ba8009d55fb32"},
 ]
 black = [
     {file = "black-22.6.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f586c26118bc6e714ec58c09df0157fe2d9ee195c764f630eb0d8e7ccce72e69"},
@@ -2026,8 +1980,8 @@ colorama = [
     {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
 connexion = [
-    {file = "connexion-2.10.0-py2.py3-none-any.whl", hash = "sha256:b10df8b67dde1b9d61ff0676f354d02ab838bed9818eb89d582504b3a3acbd71"},
-    {file = "connexion-2.10.0.tar.gz", hash = "sha256:de0cab04ff548e392ba206228ded9d46620765a4b27f0d0c8ab3999ad20b53dc"},
+    {file = "connexion-2.13.1-py2.py3-none-any.whl", hash = "sha256:fb9a8c7a60fdecac45c913c1373948b28d8a55328472e08b5132fba36da36524"},
+    {file = "connexion-2.13.1.tar.gz", hash = "sha256:80b534800b408d184fe6d36e755edefdd657e8f11756b5806d6bcf7213380d0d"},
 ]
 constructs = [
     {file = "constructs-3.4.9-py3-none-any.whl", hash = "sha256:56edf5bfe4800740544102d42e7364ab7dc35f592e3d51a16c884c343a84012e"},
@@ -2038,8 +1992,8 @@ dill = [
     {file = "dill-0.3.4.zip", hash = "sha256:9f9734205146b2b353ab3fec9af0070237b6ddae78452af83d2fca84d739e675"},
 ]
 exceptiongroup = [
-    {file = "exceptiongroup-1.0.0rc5-py3-none-any.whl", hash = "sha256:295a9d7847f9ad08267f47c701a676ec70a64200a360dd49eb513f72209b09f4"},
-    {file = "exceptiongroup-1.0.0rc5.tar.gz", hash = "sha256:665422550b9653acd46e9cd35d933f28c5158ca4c058c53619cfa112915cd69e"},
+    {file = "exceptiongroup-1.0.0rc9-py3-none-any.whl", hash = "sha256:2e3c3fc1538a094aab74fad52d6c33fc94de3dfee3ee01f187c0e0c72aec5337"},
+    {file = "exceptiongroup-1.0.0rc9.tar.gz", hash = "sha256:9086a4a21ef9b31c72181c77c040a074ba0889ee56a7b289ff0afb0d97655f96"},
 ]
 flake8 = [
     {file = "flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
@@ -2060,10 +2014,6 @@ inflection = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
-]
-isodate = [
-    {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
-    {file = "isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9"},
 ]
 isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
@@ -2206,15 +2156,6 @@ mypy = [
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
-]
-openapi-schema-validator = [
-    {file = "openapi-schema-validator-0.1.6.tar.gz", hash = "sha256:230db361c71a5b08b25ec926797ac8b59a8f499bbd7316bd15b6cd0fc9aea5df"},
-    {file = "openapi_schema_validator-0.1.6-py2-none-any.whl", hash = "sha256:8ef097b78c191c89d9a12cdf3d311b2ecf9d3b80bbe8610dbc67a812205a6a8d"},
-    {file = "openapi_schema_validator-0.1.6-py3-none-any.whl", hash = "sha256:af023ae0d16372cf8dd0d128c9f3eaa080dc3cd5dfc69e6a247579f25bd10503"},
-]
-openapi-spec-validator = [
-    {file = "openapi-spec-validator-0.3.3.tar.gz", hash = "sha256:43d606c5910ed66e1641807993bd0a981de2fc5da44f03e1c4ca2bb65b94b68e"},
-    {file = "openapi_spec_validator-0.3.3-py2.py3-none-any.whl", hash = "sha256:49d7da81996714445116f6105c9c5955c0e197ef8636da4f368c913f64753443"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
